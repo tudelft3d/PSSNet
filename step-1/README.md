@@ -5,7 +5,6 @@ This is part of the implementation of the paper: [*PSSNet: Planarity-sensible Se
 Specifically, it is used for *Step-1*: planarity-sensible over-segmentation.   
 It is based on the implementation of [*SUM: Planarity-sensible Semantic Segmentation of Large-scale Urban Meshes*](https://www.sciencedirect.com/science/article/pii/S0924271622003355), which is an open-source program for automatic semantic segmentation of large-scale urban texture meshes.
 It is mainly implemented in C++ with other open-source libraries, such as [CGAL](https://www.cgal.org/) and [Easy3D](https://github.com/LiangliangNan/Easy3D).
-For more information, please visit our [project website](https://3d.bk.tudelft.nl/projects/meshannotation/).
 
 <div align="center">    
 <img src="../images/step1.png" width="800px" />
