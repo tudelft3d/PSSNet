@@ -1,13 +1,11 @@
 
-# PSSNet: **P**lanarity-sensible **S**emantic **S**egmentation of Large-scale Urban Meshes (Step-2)
+# PSSNet: **P**lanarity-sensible **S**emantic **S**egmentation of Large-scale Urban Meshes (Step-1).
 
-This is part of the implementation of the paper: [*PSSNet: Planarity-sensible Semantic Segmentation of Large-scale Urban Meshes*](https://www.sciencedirect.com/science/article/pii/S0924271622003355). 
-Specifically, it is used for *Step-2*: semantic classification. For *Step-1*: planarity-sensible over-segmentation, please refer to [*Step-1*](https://github.com/tudelft3d/SUMS-Semantic-Urban-Mesh-Segmentation-public/tree/pssnet) repository.   
-It is based on the implementation of [*Large-scale Point Cloud Semantic Segmentation with Superpoint Graphs*](https://openaccess.thecvf.com/content_cvpr_2018/papers/Landrieu_Large-Scale_Point_Cloud_CVPR_2018_paper.pdf) by Loic Landrieu and Mohamed Boussaha (CVPR2019).
-The original [SPG](https://github.com/loicland/superpoint_graph) is a PyTorch implementation for automatic semantic segmentation of large-scale point clouds.
+This is the implementation of the paper: [*PSSNet: Planarity-sensible Semantic Segmentation of Large-scale Urban Meshes*](https://www.sciencedirect.com/science/article/pii/S0924271622003355). 
+Specifically, it consists of two steps: *Step-1*: planarity-sensible over-segmentation; *Step-2*: semantic classification.   
 
 <div align="center">    
-<img src="image/pipeline.png" width="800px" />
+<img src="images/pipeline_all.png" width="800px" />
 </div>
 
 ## Citation
@@ -27,71 +25,8 @@ url = {https://www.sciencedirect.com/science/article/pii/S0924271622003355},
 }
 </pre></div></div>
 
-## Code structure
-* `./partition/*` - Partition code (convert mesh over-segmentation results and graphs to *.h5 format)
-* `./learning/*` - Learning code (feature embedding and segment classification).
-
-## Requirements 
-
-*1.* Install [PyTorch](https://pytorch.org) and [torchnet](https://github.com/pytorch/tnt).
-```
-pip install git+https://github.com/pytorch/tnt.git@master
-``` 
-
-*2.* Install additional Python packages:
-```
-pip install future python-igraph tqdm transforms3d pynvrtc fastrlock cupy h5py sklearn plyfile scipy
-```
-
-*3.* Install Boost (1.63.0 or newer) and Eigen3, in Conda:<br>
-```
-conda install -c anaconda boost; conda install -c omnia eigen3; conda install eigen; conda install -c r libiconv
-```
-
-*4.* Compile the ```libpython_parsing``` libraries:
-```
-CONDAENV=YOUR_CONDA_ENVIRONMENT_LOCATION
-cd segment_parsing_spg
-mkdir build
-cd build
-cmake .. -DPYTHON_LIBRARY=$CONDAENV/lib/libpython3.7m.so -DPYTHON_INCLUDE_DIR=$CONDAENV/include/python3.7m -DBOOST_INCLUDEDIR=$CONDAENV/include -DEIGEN3_INCLUDE_DIR=$CONDAENV/include/eigen3
-make
-```
-The code was tested on Ubuntu 16 with Python 3.7 and PyTorch 1.5.1.
-
-## Running the code
-
-#### Partition conversion
-To convert mesh over-segmentation results and graphs to *.h5 format.
-```
-python partition/pssnet_partition.py --dataset custom_dataset --ROOT_PATH $CUSTOM_SET_DIR
-``` 
-
-#### Learning
-To train the network.
-```
-CUDA_VISIBLE_DEVICES=0 python learning/pssnet_main.py --dataset custom_dataset --CUSTOM_SET_PATH $CUSTOM_SET_DIR --db_test_name testred --db_train_name trainval \
---epochs 200 --lr_steps '[50, 100, 150]' --test_nth_epoch 100 --model_config 'gru_10_1_1_1_0,f_6' --ptn_nfeat_stn 6 \
---nworkers 0 --pc_attrib xyzrgball --odir "../datasets/custom_set/results"
-```
-
-To perform the test.
-```
-CUDA_VISIBLE_DEVICES=0 python learning/pssnet_main.py --dataset custom_dataset --CUSTOM_SET_PATH $CUSTOM_SET_DIR --db_test_name testred --db_train_name trainval \
---epochs -1 --lr_steps '[50, 100, 150]' --test_nth_epoch 100 --model_config 'gru_10_1_1_1_0,f_6' --ptn_nfeat_stn 6 \
---nworkers 0 --pc_attrib xyzrgball --odir "../datasets/custom_set/results" --resume RESUME
-```
-#### Evaluation
-
-To evaluate quantitatively a trained model: 
-```
-python learning/pssnet_evaluate.py --odir "../datasets/custom_set/results"
-``` 
-
-To write the predicted results, use the visualize function in partition. For example:
-```
-python partition/pssnet_visualize.py --dataset custom_dataset --ROOT_PATH $CUSTOM_SET_DIR --res_file "../datasets/custom_set/results/predictions_test" --output_type r
-```
+## Usage
+Please refer to the ```README.md``` in the folder for the different steps.
 
 ## License
 PSSNet is free software; you can redistribute it and/or modify it under the terms of the 
