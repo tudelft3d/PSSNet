@@ -189,7 +189,9 @@ namespace semantic_mesh_segmentation
 			temp_str = prefixs[10];
 
 		std::ostringstream str_ostemp;
-		if (processing_mode == 0 || (processing_mode == 1 && sota_folder_path == "PSSNet/")) //RF
+		if (processing_mode == 0 ||
+			(processing_mode == 2 || current_mode == operating_mode::PSSNet_oversegmentation_backbone) ||
+			(processing_mode == 1 && sota_folder_path == "PSSNet/")) //RF
 		{
 			str_ostemp
 				<< root_path
