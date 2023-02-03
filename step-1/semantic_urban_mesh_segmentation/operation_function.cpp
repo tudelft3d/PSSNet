@@ -1129,57 +1129,49 @@ namespace semantic_mesh_segmentation
 
 					std::cout << "Get labels for planar and non-planar data from semantic labels." << std::endl;
 
-					for (std::size_t mi = 0; mi < base_names.size(); ++mi)
+					//process single tile
+					for (int mi = 0; mi < base_names.size(); ++mi)
 					{
-						if (train_predict[tr_pr_i])
+						SFMesh *smesh_original = new SFMesh;
+
+						//read original mesh
+						read_labeled_mesh_data(smesh_original, mi);
+
+						//merge semantics
+						for (auto fd : smesh_original->faces())
 						{
-							changing_to_test_or_predict(tr_pr_i);
-
-							//process single tile
-							for (int mi = 0; mi < base_names.size(); ++mi)
+							std::string current_label;
+							if (smesh_original->get_face_truth_label[fd] != 0)
 							{
-								SFMesh *smesh_original = new SFMesh;
-
-								//read original mesh
-								read_labeled_mesh_data(smesh_original, mi);
-
-								//merge semantics
-								for (auto fd : smesh_original->faces())
-								{
-									std::string current_label;
-									if (smesh_original->get_face_truth_label[fd] != 0)
-									{
-										int current_label_ind = smesh_original->get_face_truth_label[fd] - 1;
-										if (current_label_ind >= 0 && current_label_ind < labels_name.size())
-											current_label = labels_name[current_label_ind];
+								int current_label_ind = smesh_original->get_face_truth_label[fd] - 1;
+								if (current_label_ind >= 0 && current_label_ind < labels_name.size())
+									current_label = labels_name[current_label_ind];
 	
-										bool matched = false;
-										for (auto la : L1_to_L0_label_map)
-										{
-											if (la.first.compare(current_label) == 0)
-											{
-												matched = true;
-												smesh_original->get_face_truth_label[fd] = la.second + 1;
-												smesh_original->get_face_color[fd] = labels_color_pnp[la.second];
-												break;
-											}
-										}
-
-										if (!matched)
-										{
-											matched = true;
-											smesh_original->get_face_truth_label[fd] = -1;
-											smesh_original->get_face_color[fd] = easy3d::vec3(0.0f, 0.0f, 0.0f);
-										}
+								bool matched = false;
+								for (auto la : L1_to_L0_label_map)
+								{
+									if (la.first.compare(current_label) == 0)
+									{
+										matched = true;
+										smesh_original->get_face_truth_label[fd] = la.second + 1;
+										smesh_original->get_face_color[fd] = labels_color_pnp[la.second];
+										break;
 									}
 								}
 
-								//write L0 mesh
-								write_pnp_mesh_data(smesh_original, mi);
-
-								delete smesh_original;
+								if (!matched)
+								{
+									matched = true;
+									smesh_original->get_face_truth_label[fd] = -1;
+									smesh_original->get_face_color[fd] = easy3d::vec3(0.0f, 0.0f, 0.0f);
+								}
 							}
 						}
+
+						//write L0 mesh
+						write_pnp_mesh_data(smesh_original, mi);
+
+						delete smesh_original;
 					}
 				}
 			}
