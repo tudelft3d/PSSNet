@@ -1,5 +1,5 @@
 
-# PSSNet: **P**lanarity-sensible **S**emantic **S**egmentation of Large-scale Urban Meshes (Step-1).
+# PSSNet: **P**lanarity-sensible **S**emantic **S**egmentation of Large-scale Urban Meshes.
 
 This is the implementation of the paper: [*PSSNet: Planarity-sensible Semantic Segmentation of Large-scale Urban Meshes*](https://www.sciencedirect.com/science/article/pii/S0924271622003355). 
 Specifically, it consists of two steps: *Step-1*: planarity-sensible over-segmentation; *Step-2*: semantic classification.   
