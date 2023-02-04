@@ -1399,16 +1399,6 @@ namespace semantic_mesh_segmentation
 								only_evaluation = false;
 						}
 					}
-					else if (param_name == "use_GCN_features")
-					{
-						if (param_value != "default")
-						{
-							if (param_value == "true" || param_value == "True" || param_value == "TRUE")
-								use_GCN_features = true;
-							else if (param_value == "false" || param_value == "False" || param_value == "FALSE")
-								use_GCN_features = false;
-						}
-					}
 					else if (param_name == "only_write_GCN_features")
 					{
 						if (param_value != "default")

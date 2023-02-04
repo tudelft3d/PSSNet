@@ -46,7 +46,7 @@ namespace semantic_mesh_segmentation
 		case operating_mode::Mesh_feature_extraction:
 		{
 			current_mode = operating_mode::Mesh_feature_extraction;
-
+			use_GCN_features = false;
 			if (process_data_selection["train"])
 			{
 				std::cout << "--------------------- Generating train mesh features ---------------------" << std::endl;
@@ -134,6 +134,7 @@ namespace semantic_mesh_segmentation
 		case operating_mode::Feature_extraction_backbone:
 		{
 			current_mode = operating_mode::Feature_extraction_backbone;
+			use_GCN_features = false;
 			if (processing_mode == 2)
 			{
 				labels_name = labels_name_pnp;
@@ -170,6 +171,7 @@ namespace semantic_mesh_segmentation
 		case operating_mode::Train_config:
 		{
 			current_mode = operating_mode::Train_config;
+			use_GCN_features = false;
 			std::cout << "--------------------- Training Mode ---------------------" << std::endl;
 			train_test_predict_val = 0;
 			get_training_data();
@@ -186,7 +188,7 @@ namespace semantic_mesh_segmentation
 		case operating_mode::Test_config:
 		{
 			current_mode = operating_mode::Test_config;
-
+			use_GCN_features = false;
 			if (process_data_selection["test"])
 			{
 				std::cout << "--------------------- Testing Mode ---------------------" << std::endl;
@@ -235,7 +237,7 @@ namespace semantic_mesh_segmentation
 		case operating_mode::Train_and_Test_config:
 		{
 			current_mode = operating_mode::Train_and_Test_config;
-
+			use_GCN_features = false;
 			train_test_predict_val = 0;
 			get_training_data();
 			data_path = training_data_path;
@@ -252,6 +254,7 @@ namespace semantic_mesh_segmentation
 		case operating_mode::Train_Backbone:
 		{
 			current_mode = operating_mode::Train_Backbone;
+			use_GCN_features = false;
 			if (processing_mode == 2)
 			{
 				labels_name = labels_name_pnp;
@@ -327,6 +330,7 @@ namespace semantic_mesh_segmentation
 		case operating_mode::Test_Backbone:
 		{
 			current_mode = operating_mode::Test_Backbone;
+			use_GCN_features = false;
 			if (processing_mode == 2)
 			{
 				labels_name = labels_name_pnp;
@@ -389,6 +393,7 @@ namespace semantic_mesh_segmentation
 		case operating_mode::Train_and_Test_Backbone:
 		{
 			current_mode = operating_mode::Train_and_Test_Backbone;
+			use_GCN_features = false;
 			if (processing_mode == 2)
 			{
 				labels_name = labels_name_pnp;
@@ -505,6 +510,7 @@ namespace semantic_mesh_segmentation
 		case operating_mode::Data_evaluation_for_all_tiles_config:
 		{
 			current_mode = operating_mode::Data_evaluation_for_all_tiles_config;
+			use_GCN_features = false;
 			if (processing_mode == 2)
 			{
 				labels_name = labels_name_pnp;
@@ -555,6 +561,7 @@ namespace semantic_mesh_segmentation
 		case operating_mode::Data_evaluation_for_all_tiles:
 		{
 			current_mode = operating_mode::Data_evaluation_for_all_tiles;
+			use_GCN_features = false;
 			//add labels
 			Label_set labels;
 			add_labels(labels);
@@ -1444,7 +1451,6 @@ namespace semantic_mesh_segmentation
 				file_ind_map = training_file_ind_map;
 				sampling_strategy = sampling_strategy_training;
 				run(operating_mode::PSSNet_graph_construction_backbone);
-				process_data_selection["train"] = false;
 			}
 
 			if (process_data_selection["test"])
@@ -1460,7 +1466,6 @@ namespace semantic_mesh_segmentation
 				file_ind_map = testing_file_ind_map;
 				sampling_strategy = sampling_strategy_testing;
 				run(operating_mode::PSSNet_graph_construction_backbone);
-				process_data_selection["test"] = false;
 			}
 
 			if (process_data_selection["predict"])
@@ -1476,7 +1481,6 @@ namespace semantic_mesh_segmentation
 				file_ind_map = predicting_file_ind_map;
 				sampling_strategy = sampling_strategy_predicting;
 				run(operating_mode::PSSNet_graph_construction_backbone);
-				process_data_selection["predict"] = false;
 			}
 
 			if (process_data_selection["validate"])
@@ -1492,7 +1496,6 @@ namespace semantic_mesh_segmentation
 				file_ind_map = validation_file_ind_map;
 				sampling_strategy = sampling_strategy_validation;
 				run(operating_mode::PSSNet_graph_construction_backbone);
-				process_data_selection["validate"] = false;
 			}
 			break;
 		}
