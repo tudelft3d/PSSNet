@@ -3368,7 +3368,7 @@ namespace semantic_mesh_segmentation
 				SFMesh::Face fdx(seg_face_vec[si][fi]);
 				if (train_test_predict_val != 2)
 				{
-					int fdx_label_truth = tmp_mesh->get_face_truth_label[fdx];
+					int fdx_label_truth = tmp_mesh->get_face_truth_label[fdx] + 1;
 					//labels should be within [1 to INF]
 					if (fdx_label_truth != 0 && fdx_label_truth != -1)
 						++majority_labels[fdx_label_truth - 1];

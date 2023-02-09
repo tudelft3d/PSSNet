@@ -12,15 +12,15 @@ include_directories(${PROJECT_NAME} PRIVATE GLEW_STATIC)
 ##############################
 ### Find required packages ###
 ##############################
-find_package(Boost COMPONENTS graph numpy37 REQUIRED)
-
 set (conda_env_path "/home/dgeo/anaconda3/envs/spg")
 list(APPEND CMAKE_PREFIX_PATH ${conda_env_path})
 
+find_package(Boost COMPONENTS graph numpy37 REQUIRED)
 find_package(PythonLibs)
 find_package(PythonInterp)
-set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_MODULE_PATH})
 find_package(NumPy REQUIRED)
+
+set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_MODULE_PATH})
 
 include_directories(${Boost_INCLUDE_DIRS})
 link_directories(${Boost_LIBRARY_DIRS})

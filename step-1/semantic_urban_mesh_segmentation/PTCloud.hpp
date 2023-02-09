@@ -392,7 +392,7 @@ namespace semantic_mesh_segmentation
 	)
 	{
 		std::vector<PTCloud::VertexProperty< float >> v_basic_feas, v_eigen_feas, v_color_feas;
-
+		this->add_vertex_property<int>("v:point_segment_id", -1);
 		for (int selc_i = 0; selc_i < use_feas.size(); ++selc_i)
 		{
 			if (use_feas[selc_i])
