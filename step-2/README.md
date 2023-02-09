@@ -33,14 +33,16 @@ url = {https://www.sciencedirect.com/science/article/pii/S0924271622003355},
 
 ## Requirements 
 
-*1.* Install [PyTorch](https://pytorch.org) and [torchnet](https://github.com/pytorch/tnt).
+*1.* Install [PyTorch](https://pytorch.org), [torchnet](https://github.com/pytorch/tnt), and [cupy](https://docs.cupy.dev/en/stable/install.html).
 ```
 pip install git+https://github.com/pytorch/tnt.git@master
+pip install torchnet
+pip install cupy-cuda1xx
 ``` 
 
 *2.* Install additional Python packages:
 ```
-pip install future python-igraph tqdm transforms3d pynvrtc fastrlock cupy h5py sklearn plyfile scipy
+pip install future python-igraph jgraph tqdm transforms3d pynvrtc fastrlock h5py sklearn plyfile scipy pandas progressbar2
 ```
 
 *3.* Install Boost (1.63.0 or newer) and Eigen3, in Conda:<br>
@@ -57,7 +59,7 @@ cd build
 cmake .. -DPYTHON_LIBRARY=$CONDAENV/lib/libpython3.7m.so -DPYTHON_INCLUDE_DIR=$CONDAENV/include/python3.7m -DBOOST_INCLUDEDIR=$CONDAENV/include -DEIGEN3_INCLUDE_DIR=$CONDAENV/include/eigen3
 make
 ```
-The code was tested on Ubuntu 16 with Python 3.7 and PyTorch 1.5.1.
+The code was tested on Ubuntu 16 with Python 3.6 ~ 3.8 and PyTorch 1.2.0 ~ 1.12.1.
 
 ## Running the code
 
