@@ -44,7 +44,7 @@ def main():
     parser.add_argument('--lr', default=1e-3, type=float, help='Initial learning rate')
     parser.add_argument('--lr_decay', default=0.7, type=float,
                         help='Multiplicative factor used on learning rate at `lr_steps`')
-    parser.add_argument('--lr_steps', default='[]',
+    parser.add_argument('--lr_steps', default='[50,100,150]',
                         help='List of epochs where the learning rate is decreased by `lr_decay`')
     parser.add_argument('--momentum', default=0.9, type=float, help='Momentum')
     parser.add_argument('--epochs', default=200, type=int,
