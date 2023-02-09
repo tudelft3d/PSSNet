@@ -74,9 +74,9 @@ def get_info(args):
         # pre-calculate the number of points in each category
         num_per_class = []
         # np.array([1, 1, 1, 1, 1, 1], dtype=np.int32)
-        #segment num: 20650, 1824, 117812, 1017, 12765, 3331
+        #segment num: 17787, 1513, 104512, 898, 11705, 2996
         #H3D: 2584, 1816, 174, 1624, 1886, 1507, 2860, 1113, 400, 563, 171
-        num_per_class = np.array([20650, 1824, 117812, 1017, 12765, 3331], dtype=np.int32)
+        num_per_class = np.array([17787, 1513, 104512, 898, 11705, 2996], dtype=np.int32)
         weight = num_per_class / float(sum(num_per_class))
         ce_label_weight = 1.0 / weight # weight, 1 / (weight + 0.02)
         weights = np.expand_dims(ce_label_weight, axis=0).astype(np.float32)
