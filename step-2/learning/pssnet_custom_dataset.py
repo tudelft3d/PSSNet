@@ -79,7 +79,8 @@ def get_info(args):
         num_per_class = np.array([17787, 1513, 104512, 898, 11705, 2996], dtype=np.int32)
         weight = num_per_class / float(sum(num_per_class))
         ce_label_weight = 1.0 / weight # weight, 1 / (weight + 0.02)
-        weights = np.expand_dims(ce_label_weight, axis=0).astype(np.float32)
+        #weights = np.expand_dims(ce_label_weight, axis=0).astype(np.float32)
+		weights = ce_label_weight.astype(np.float32)
         # add sqrt
         weights = np.sqrt(weights)
     weights = torch.from_numpy(weights).cuda() if args.cuda else torch.from_numpy(weights)
