@@ -47,7 +47,7 @@ pip install future python-igraph jgraph tqdm transforms3d pynvrtc fastrlock h5py
 
 *3.* Install Boost (1.63.0 or newer) and Eigen3, in Conda:<br>
 ```
-conda install -c anaconda boost; conda install -c omnia eigen3; conda install eigen; conda install -c r libiconv
+conda install -c anaconda boost; conda install -c omnia eigen3; conda install eigen; conda install -c r libiconv; conda install pyg -c pyg
 ```
 
 *4.* Compile the ```libpython_parsing``` libraries:
