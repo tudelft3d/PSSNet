@@ -44,12 +44,12 @@ def main():
     parser.add_argument('--lr', default=1e-2, type=float, help='Initial learning rate')
     parser.add_argument('--lr_decay', default=0.7, type=float,
                         help='Multiplicative factor used on learning rate at `lr_steps`')
-    parser.add_argument('--lr_steps', default='[50,100,150]',
+    parser.add_argument('--lr_steps', default='[150,250,350]',
                         help='List of epochs where the learning rate is decreased by `lr_decay`')
     parser.add_argument('--momentum', default=0.9, type=float, help='Momentum')
-    parser.add_argument('--epochs', default=200, type=int,
+    parser.add_argument('--epochs', default=400, type=int,
                         help='Number of epochs to train. If <=0, only testing will be done.')
-    parser.add_argument('--batch_size', default=4, type=int, help='Batch size')
+    parser.add_argument('--batch_size', default=2, type=int, help='Batch size')
     parser.add_argument('--optim', default='adam', help='Optimizer: sgd|adam')
     parser.add_argument('--grad_clip', default=1, type=float,
                         help='Element-wise clipping of gradient. If 0, does not clip')
@@ -60,7 +60,7 @@ def main():
     parser.add_argument('--cuda', default=1, type=int, help='Bool, use cuda')
     parser.add_argument('--nworkers', default=20, type=int, #
                         help='Num subprocesses to use for data loading. 0 means that the data will be loaded in the main process')
-    parser.add_argument('--test_nth_epoch', default=100, type=int, help='Test each n-th epoch during training')
+    parser.add_argument('--test_nth_epoch', default=10, type=int, help='Test each n-th epoch during training')
     parser.add_argument('--save_nth_epoch', default=1, type=int, help='Save model each n-th epoch during training')
     parser.add_argument('--test_multisamp_n', default=10, type=int,
                         help='Average logits obtained over runs with different seeds')
@@ -146,7 +146,7 @@ def main():
                         help='Size of the decoder : sp_embedding -> sp_class. First layer of size sp_embed (* (1+n_ecc_iteration) if concatenation) and last layer is n_classes')
 
     parser.add_argument('--aug_labels', default='123456', help='123456 or -1 for not augmentation')
-    parser.add_argument('--use_pyg', default=0, type=int, help='Wether to use Pytorch Geometric for graph convolutions')
+    parser.add_argument('--use_pyg', default=1, type=int, help='Wether to use Pytorch Geometric for graph convolutions')
 
     args = parser.parse_args()
     args.start_epoch = 0
@@ -228,13 +228,11 @@ def main():
 
                 loss.backward()
 
-                #####################Update with embeding global features directly #################
                 ptnCloudEmbedder.bw_hook()
 
                 if args.grad_clip > 0:
                     for p in model.parameters():
                         p.grad.data.clamp_(-args.grad_clip, args.grad_clip)
-                #################################################################################
 
                 optimizer.step()
 
