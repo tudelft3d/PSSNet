@@ -77,7 +77,7 @@ CUDA_VISIBLE_DEVICES=0 python learning/pssnet_main.py --dataset custom_dataset -
 --nworkers 0 --pc_attrib xyzrgball --odir "../datasets/custom_set/results"
 ```
 
-To perform the test.
+To perform the test. The pre-trained model is provided [here](https://surfdrive.surf.nl/files/index.php/s/h9w1dkdEDA45Q2V).
 ```
 CUDA_VISIBLE_DEVICES=0 python learning/pssnet_main.py --dataset custom_dataset --CUSTOM_SET_PATH $CUSTOM_SET_DIR --db_test_name testred --db_train_name trainval \
 --epochs -1 --lr_steps '[50, 100, 150]' --test_nth_epoch 100 --model_config 'gru_10_1_1_1_0,f_6' --ptn_nfeat_stn 6 \
