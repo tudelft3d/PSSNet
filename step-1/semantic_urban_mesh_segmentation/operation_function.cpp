@@ -861,7 +861,7 @@ namespace semantic_mesh_segmentation
 						if (input_type_for_statistics == 0)
 						{
 							//read original mesh
-							ocessing_mode = 0;
+							processing_mode = 0;
 							SFMesh *smesh_original = new SFMesh;
 							read_labeled_mesh_data(smesh_original, mi);
 
