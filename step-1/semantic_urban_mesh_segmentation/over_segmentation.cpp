@@ -1898,7 +1898,8 @@ namespace semantic_mesh_segmentation
 			);
 
 			//merge isolated segments
-			merge_single_segments(smesh_in, segment_intermediate, segment_merged);
+			//merge_single_segments(smesh_in, segment_intermediate, segment_merged);
+			segment_merged.insert(segment_merged.end(), segment_intermediate.begin(), segment_intermediate.end());
 
 			//merge single triangles
 			merge_single_triangles(smesh_in, segment_merged);
