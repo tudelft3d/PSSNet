@@ -1178,8 +1178,16 @@ namespace semantic_mesh_segmentation
 		local_elevation_for_pointcloud(smesh_out, cloud_ele, segment_out);
 
 		//--- compute features ---
+		int prev_percent = -1;
 		for (int i = 0; i < segment_out.size(); ++i)
 		{
+			int progress = int(100.0f * (i + 1) / float(segment_out.size()));
+			if (progress != prev_percent)
+			{
+				printf("%3d%%\b\b\b\b", progress);
+				prev_percent = progress;
+			}
+
 			std::vector<int> majority_labels(labels_name.size(), 0);
 			std::map<int, bool> vert_visit, seg_longrange_check, seg_shortrange_check;
 			//face features extract

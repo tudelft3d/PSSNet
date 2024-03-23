@@ -282,7 +282,6 @@ namespace semantic_mesh_segmentation
 	double remove_close_vertices_for_delaunay_dis = 10E-3 * 2.0f;
 
 	//feature parameters
-	int alpha_shape_val = 1;//1
 	int border_growing_neighbor = 10;//>0, 5 for non batch; 20 for batch
 	float cutoff_spfcompact_max = 1.0f;
 	std::pair<bool, int> ignore_mesh_boundary(true, 1.0f); //is ignore, boundary search radius 

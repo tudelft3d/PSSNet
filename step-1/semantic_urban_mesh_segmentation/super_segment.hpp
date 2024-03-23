@@ -61,10 +61,9 @@ namespace semantic_mesh_segmentation
 		easy3d::vec4 plane_parameter;
 		std::vector<int> sampled_points;
 		Plane plane_cgal;
-		std::vector<vec3> sampled_pts_coords, border_points, alpha_border_points;
+		std::vector<vec2> border_points_2d;
+		std::vector<vec3> sampled_pts_coords;
 		std::vector<std::pair<int, float>> segid_local_zmin_vec;
-		std::vector<std::tuple<int, easy3d::vec3, bool>> segment_alpha_vertices;//global index, coords, is border
-		std::vector<std::tuple<int, std::pair<int, int>, bool>> segment_alpha_edges;//global index, global vs and vt, is border
 		superfacets
 		()
 		{

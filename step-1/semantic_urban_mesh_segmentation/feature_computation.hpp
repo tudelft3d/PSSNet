@@ -45,6 +45,7 @@
 #include "sampling_function.hpp"
 #include "parameters.hpp"
 #include "property_parsing.hpp"
+#include "concaveman.hpp"
 
 using namespace easy3d;
 namespace semantic_mesh_segmentation
@@ -447,44 +448,43 @@ namespace semantic_mesh_segmentation
 		cloud_all->get_points_color = cloud_all->get_vertex_property<vec3>("v:color");
 	}
 
-
 	//find n rings point on line
 	inline void find_n_rings_point_on_line
 	(
 		SFMesh* smesh_out,
-		std::vector<easy3d::vec3> &alpha_border_points,
-		std::vector<Point_3> &vertex_on_line,
+		std::vector<easy3d::vec2>& border_points,
+		std::vector<Point_2>& vertex_on_line,
 		const int n,
 		const int current_id
 	)
 	{
-		int num_points = alpha_border_points.size();
-		Point_3 p_tmp(alpha_border_points[current_id].x, alpha_border_points[current_id].y, alpha_border_points[current_id].z);
+		int num_points = border_points.size();
+		Point_2 p_tmp(border_points[current_id].x, border_points[current_id].y);
 		vertex_on_line.push_back(p_tmp);
-		for (int i = 1; i < n + 1; ++i) if (vertex_on_line.size() <= alpha_border_points.size())
+		for (int i = 1; i < n + 1; ++i) if (vertex_on_line.size() <= border_points.size())
 		{
 			if (current_id + i < num_points)
 			{
-				Point_3 p_forward(alpha_border_points[current_id + i].x, alpha_border_points[current_id + i].y, alpha_border_points[current_id + i].z);
+				Point_2 p_forward(border_points[current_id + i].x, border_points[current_id + i].y);
 				vertex_on_line.push_back(p_forward);
 			}
 			else
 			{
-				Point_3 p_forward(alpha_border_points[current_id + i - num_points].x, alpha_border_points[current_id + i - num_points].y, alpha_border_points[current_id + i - num_points].z);
+				Point_2 p_forward(border_points[current_id + i - num_points].x, border_points[current_id + i - num_points].y);
 				vertex_on_line.push_back(p_forward);
 			}
 
-			if (vertex_on_line.size() >= alpha_border_points.size())
+			if (vertex_on_line.size() >= border_points.size())
 				break;
 
 			if (current_id - i >= 0)
 			{
-				Point_3 p_backward(alpha_border_points[current_id - i].x, alpha_border_points[current_id - i].y, alpha_border_points[current_id - i].z);
+				Point_2 p_backward(border_points[current_id - i].x, border_points[current_id - i].y);
 				vertex_on_line.push_back(p_backward);
 			}
 			else
 			{
-				Point_3 p_backward(alpha_border_points[num_points + current_id - i].x, alpha_border_points[num_points + current_id - i].y, alpha_border_points[num_points + current_id - i].z);
+				Point_2 p_backward(border_points[num_points + current_id - i].x, border_points[num_points + current_id - i].y);
 				vertex_on_line.push_back(p_backward);
 			}
 		}
@@ -571,26 +571,25 @@ namespace semantic_mesh_segmentation
 		cloud_out->remove_vertex_property(get_points_segment_ids);
 	}
 
-
 	//--- contour related computation ---
 	inline void compute_shape_features
 	(
-		superfacets &segment,
-		SFMesh *smesh_out,
-		float &shape_descriptor,
-		float &compactness,
-		float &shape_index
+		superfacets& segment,
+		SFMesh* smesh_out,
+		float& shape_descriptor,
+		float& compactness,
+		float& shape_index
 	)
 	{
-		int ring_point_size = segment.alpha_border_points.size();
+		int ring_point_size = segment.border_points_2d.size();
 		float total_length = segment.border_length;
 
 		for (int i = 0; i < ring_point_size; ++i)
 		{
-			std::vector<Point_3> vertex_on_line;
-			find_n_rings_point_on_line(smesh_out, segment.alpha_border_points, vertex_on_line, border_growing_neighbor, i);
-			Line_3 licgal;
-			shape_descriptor += CGAL::linear_least_squares_fitting_3(vertex_on_line.begin(), vertex_on_line.end(), licgal, CGAL::Dimension_tag<0>());
+			std::vector<Point_2> vertex_on_line;
+			find_n_rings_point_on_line(smesh_out, segment.border_points_2d, vertex_on_line, border_growing_neighbor, i);
+			Line_2 licgal;
+			shape_descriptor += CGAL::linear_least_squares_fitting_2(vertex_on_line.begin(), vertex_on_line.end(), licgal, CGAL::Dimension_tag<0>());
 		}
 
 		if (ring_point_size > 0)
@@ -620,221 +619,62 @@ namespace semantic_mesh_segmentation
 		value_validation_check(shape_index);
 	}
 
-	template<class Triangulation_2_Exact, class Alpha_shape_2_Exact, class Edge_circulator_Exact, class Vertex_handle_Exact, class Face_handle_Exact>
-	inline void extract_alpha_shape_boundary
-	(
-		superfacets &segment_out,
-		std::vector<Point_3_Exact> &alpha_candidate_points_cgal
-	)
-	{
-		Triangulation_2_Exact tr_tmp;
-		tr_tmp.insert(alpha_candidate_points_cgal.begin(), alpha_candidate_points_cgal.end());
-
-		//use alpha to extract the 2D boundary
-		Alpha_shape_2_Exact border_shape(tr_tmp,
-			FT_Exact(alpha_shape_val),
-			Alpha_shape_2_Exact::GENERAL);
-
-		// flood filling 
-		auto grower = AlphaShapeRegionGrower
-			<Alpha_shape_2_Exact, Face_handle_Exact, Vertex_handle_Exact>(border_shape);
-		grower.grow();
-
-		std::vector<std::vector<vec3>> alpha_rings;
-		for (auto& kv : grower.region_map)
-		{
-			auto region_label = kv.first;
-			auto v_start = kv.second;
-
-			// find edges of outer boundary in order
-			std::vector<vec3> current_ring;
-			current_ring.push_back(vec3(v_start->point().x(), v_start->point().y(), v_start->point().z()));
-
-			// secondly, walk along the entire boundary starting from v_start
-			Vertex_handle_Exact v_next, v_prev = v_start, v_cur = v_start;
-			size_t v_cntr = 0;
-			do
-			{
-				Edge_circulator_Exact ec(border_shape.incident_edges(v_cur)), done(ec);
-				do {
-					// find the vertex on the other side of the incident edge ec
-					auto v = ec->first->vertex(border_shape.cw(ec->second));
-					if (v_cur == v)
-						v = ec->first->vertex(border_shape.ccw(ec->second));
-					// find labels of two adjacent faces
-					auto label1 = grower.face_map[ec->first];
-					auto label2 = grower.face_map[ec->first->neighbor(ec->second)];
-					// check if the edge is on the boundary of the region and if we are not going backwards
-					bool exterior = label1 == -1 || label2 == -1;
-					bool region = label1 == region_label || label2 == region_label;
-					if ((exterior && region) && (v != v_prev))
-					{
-						v_next = v;
-						current_ring.push_back(vec3(v_next->point().x(), v_next->point().y(), v_next->point().z()));
-						break;
-					}
-				} while (++ec != done);
-				v_prev = v_cur;
-				v_cur = v_next;
-
-			} while (v_next != v_start);
-			// finally, store the ring 
-			alpha_rings.push_back(current_ring);
-		}
-
-		//extract alppha ring with longest total length
-		std::tuple<int, float, std::vector<vec3>> ringind_maxlength(-1, -FLT_MAX, std::vector<vec3>());
-		int ring_i = 0;
-		for (auto ring : alpha_rings)
-		{
-			float length = 0.0f;
-			for (int vi = 1; vi < ring.size(); ++vi)
-			{
-				length += Distance_3D(ring[vi - 1], ring[vi]);
-			}
-
-			if (length > get<1>(ringind_maxlength))
-			{
-				get<0>(ringind_maxlength) = ring_i;
-				get<1>(ringind_maxlength) = length;
-				get<2>(ringind_maxlength) = ring;
-			}
-			++ring_i;
-		}
-
-		for (int vi = 1; vi < get<2>(ringind_maxlength).size(); ++vi)
-		{
-			//int vs = alpha_vertices.size();
-			//alpha_vertices.push_back(get<2>(ringind_maxlength)[vi - 1]);
-			segment_out.segment_alpha_vertices.push_back(std::make_tuple(vi - 1, get<2>(ringind_maxlength)[vi - 1], false));
-			segment_out.alpha_border_points.push_back(get<2>(ringind_maxlength)[vi - 1]);
-
-			//int vt = alpha_vertices.size();
-			//alpha_vertices.push_back(get<2>(ringind_maxlength)[vi]);
-			segment_out.segment_alpha_vertices.push_back(std::make_tuple(vi, get<2>(ringind_maxlength)[vi], false));
-			segment_out.alpha_border_points.push_back(get<2>(ringind_maxlength)[vi]);
-
-			//alpha_edges.push_back(std::make_pair(vs, vt));
-			segment_out.segment_alpha_edges.push_back(std::make_tuple(vi - 1, std::make_pair(vi - 1, vi), false));
-		}
-
-		if (get<2>(ringind_maxlength).size() > 1)
-			segment_out.border_length = get<1>(ringind_maxlength);
-		else
-		{
-			segment_out.border_length = default_feature_value_minmax.first;
-			for (auto pts : segment_out.ExactVec_CGAL)
-			{
-				segment_out.alpha_border_points.push_back(vec3(pts.x(), pts.y(), pts.z()));
-			}
-		}
-	}
-
-
-	inline void MarkMeshBoundaryAlphaVertices
-	(
-		SFMesh* smesh_out,
-		PTCloud *cloud_pt_3d,
-		superfacets &segment,
-		std::vector<superfacets> &segment_all,
-		std::map<vec3, PTCloud::Vertex> &vec_pcl_map
-	)
-	{
-#pragma omp parallel for schedule(dynamic)
-		for (int alpha_pi = 0; alpha_pi < segment.segment_alpha_vertices.size(); ++alpha_pi)
-		{
-			vec3 p_tmp = get<1>(segment.segment_alpha_vertices[alpha_pi]);
-			if (cloud_pt_3d->get_points_on_mesh_border[vec_pcl_map[p_tmp]])
-			{
-				get<2>(segment.segment_alpha_vertices[alpha_pi]) = true;
-			}
-		}
-	}
-
-	//For mesh contain duplicate vertices and interior mesh boundary
 	inline void extract_segment_longest_border
 	(
-		std::vector<superfacets> &segment_all,
-		SFMesh *smesh_out,
-		PTCloud *cloud_pt_3d,
-		superfacets &segment
+		SFMesh* smesh_out,
+		PTCloud* cloud_pt_3d,
+		superfacets& segment
 	)
 	{
 		//Extract segment points and convert to CGAL point type
-		std::vector<Point_3_Exact> alpha_candidate_points_cgal;
 		std::vector<Point_3> fitting_points;
-		std::map<vec3, PTCloud::Vertex> vec_pcl_map;
-		alpha_candidate_points_cgal.resize(segment.sampled_points.size());
 		fitting_points.resize(segment.sampled_points.size());
-		//#pragma omp parallel for schedule(dynamic)
+		std::vector< PTCloud::Vertex> ptx_collect;
+
 		for (int i = 0; i < segment.sampled_points.size(); ++i)
 		{
 			PTCloud::Vertex ptx(segment.sampled_points[i]);
 			vec3 p_tmp = cloud_pt_3d->get_points_coord[ptx];
-			alpha_candidate_points_cgal[i] = Point_3_Exact(p_tmp.x, p_tmp.y, p_tmp.z);
 			fitting_points[i] = Point_3(p_tmp.x, p_tmp.y, p_tmp.z);
-			vec_pcl_map[p_tmp] = ptx;
+			ptx_collect.push_back(ptx);
 		}
 
-		//check the which plane to project and compute alpha shape
+		//check the which plane to project and compute concave hull
 		vec3 xy_normal(0.0f, 0.0f, 1.0f), xz_normal(0.0f, 1.0f, 0.0f), yz_normal(1.0f, 0.0f, 0.0f);
 		Plane plcgal;
 		CGAL::linear_least_squares_fitting_3(fitting_points.begin(), fitting_points.end(), plcgal, CGAL::Dimension_tag<0>());
-		vec3 plane_normal(plcgal.a(), plcgal.b(), plcgal.c());
-		float xy_angle = vector3D_angle(plane_normal, xy_normal);
-		float xz_angle = vector3D_angle(plane_normal, xz_normal);
-		float yz_angle = vector3D_angle(plane_normal, yz_normal);
 
-		xy_angle = xy_angle > 90.0f ? 180.0f - xy_angle : xy_angle;
-		xz_angle = xz_angle > 90.0f ? 180.0f - xz_angle : xz_angle;
-		yz_angle = yz_angle > 90.0f ? 180.0f - yz_angle : yz_angle;
-
-		if (xz_angle < xy_angle && xz_angle < yz_angle)
+		std::vector<Point_2> cgal_points;
+		cgal_points.resize(segment.sampled_points.size());
+		std::vector<std::array<double, 2>> cm_points; 
+		cm_points.resize(segment.sampled_points.size());
+		for (int i = 0; i < fitting_points.size(); ++i)
 		{
-			extract_alpha_shape_boundary
-				<Triangulation_2_Exact_xz,
-				Alpha_shape_2_Exact_xz,
-				Edge_circulator_Exact_xz,
-				Vertex_handle_Exact_xz,
-				Face_handle_Exact_xz>(segment, alpha_candidate_points_cgal);
-		}
-		else if (yz_angle < xy_angle && yz_angle < xz_angle)
-		{
-			extract_alpha_shape_boundary
-				<Triangulation_2_Exact_yz,
-				Alpha_shape_2_Exact_yz,
-				Edge_circulator_Exact_yz,
-				Vertex_handle_Exact_yz,
-				Face_handle_Exact_yz>(segment, alpha_candidate_points_cgal);
-		}
-		else
-		{
-			extract_alpha_shape_boundary
-				<Triangulation_2_Exact_xy,
-				Alpha_shape_2_Exact_xy,
-				Edge_circulator_Exact_xy,
-				Vertex_handle_Exact_xy,
-				Face_handle_Exact_xy>(segment, alpha_candidate_points_cgal);
+			auto p2d = plcgal.to_2d(fitting_points[i]);
+			cgal_points[i] = p2d;
+			cm_points[i][0] = p2d.x();
+			cm_points[i][1] = p2d.y();
 		}
 
-		//process mesh border points, ignore them in the later process, in case of processing large segment cost too much time 
-		if (ignore_mesh_boundary.first && segment.contain_mesh_border_facets)
-			MarkMeshBoundaryAlphaVertices(smesh_out, cloud_pt_3d, segment, segment_all, vec_pcl_map);
+		std::vector<int> indices(segment.sampled_points.size()), hull;
+		std::iota(indices.begin(), indices.end(), 0);
+		CGAL::convex_hull_2(indices.begin(), indices.end(), std::back_inserter(hull),
+			Convex_hull_traits_2(CGAL::make_property_map(cgal_points)));
 
-		//use alpha vertices to compute shape features
-		for (int alpha_pi = 0; alpha_pi < segment.segment_alpha_vertices.size(); ++alpha_pi)
+		auto concave = concaveman<double, 16>(cm_points, hull);
+		
+		int vi = 0;
+		segment.border_length = 0.0f;
+		for (auto& p : concave)
 		{
-			if (ignore_mesh_boundary.first)
-			{
-				if (!get<2>(segment.segment_alpha_vertices[alpha_pi]))
-					segment.border_points.push_back(get<1>(segment.segment_alpha_vertices[alpha_pi]));
-			}
-			else
-			{
-				segment.border_points.push_back(get<1>(segment.segment_alpha_vertices[alpha_pi]));
-			}
+			segment.border_points_2d.push_back(vec2(p[0], p[1]));
+			if (vi > 0)
+				segment.border_length += easy3d::distance2(segment.border_points_2d[vi - 1], segment.border_points_2d[vi]);
+			++vi;
 		}
+		segment.border_length += easy3d::distance2(segment.border_points_2d[segment.border_points_2d.size() - 1], segment.border_points_2d[0]);
 	}
+
 
 	//extract segment border based features
 	inline void segment_shape_based_features
@@ -846,10 +686,10 @@ namespace semantic_mesh_segmentation
 		float &shape_descriptor,
 		float &compactness,
 		float &shape_index
-	) restrict(cpu)
+	) 
 	{
-		//Extract contour from segment sampled point cloud based on alpha-shape
-		extract_segment_longest_border(segments, smesh_out, cloud_pt_3d, segments[seg_i]);
+		//Extract contour from segment sampled point cloud based on concave hull
+		extract_segment_longest_border(smesh_out, cloud_pt_3d, segments[seg_i]);
 
 		//compute shape based features
 		compute_shape_features(segments[seg_i], smesh_out, shape_descriptor, compactness, shape_index);

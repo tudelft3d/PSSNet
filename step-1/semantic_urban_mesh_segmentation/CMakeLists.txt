@@ -23,6 +23,7 @@ set(${PROJECT_NAME}_HEADERS
 	./over_segmentation.hpp
 	./CGAL_Define.hpp
 	./mesh_processor.hpp
+	./concaveman.hpp
     )
 
 set(${PROJECT_NAME}_SOURCES

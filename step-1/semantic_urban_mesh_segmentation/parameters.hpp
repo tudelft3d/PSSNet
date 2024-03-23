@@ -274,7 +274,7 @@ namespace semantic_mesh_segmentation
 	extern bool delaunay_relations_on_sampled_points;
 	extern double remove_close_vertices_for_delaunay_dis;
 
-	extern int cutoff_spf_vertex_count, alpha_shape_val, border_growing_neighbor;
+	extern int cutoff_spf_vertex_count, border_growing_neighbor;
 	extern float cutoff_spfcompact_max;
 	extern std::pair<bool, int> ignore_mesh_boundary;
 }
