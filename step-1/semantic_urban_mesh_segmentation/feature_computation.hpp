@@ -669,10 +669,10 @@ namespace semantic_mesh_segmentation
 		{
 			segment.border_points_2d.push_back(vec2(p[0], p[1]));
 			if (vi > 0)
-				segment.border_length += easy3d::distance2(segment.border_points_2d[vi - 1], segment.border_points_2d[vi]);
+				segment.border_length += easy3d::distance(segment.border_points_2d[vi - 1], segment.border_points_2d[vi]);
 			++vi;
 		}
-		segment.border_length += easy3d::distance2(segment.border_points_2d[segment.border_points_2d.size() - 1], segment.border_points_2d[0]);
+		segment.border_length += easy3d::distance(segment.border_points_2d[segment.border_points_2d.size() - 1], segment.border_points_2d[0]);
 	}
 
 

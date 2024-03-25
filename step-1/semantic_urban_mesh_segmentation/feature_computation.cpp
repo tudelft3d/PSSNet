@@ -1168,15 +1168,17 @@ namespace semantic_mesh_segmentation
 		PTCloud *cloud_ele      //for local elevation
 	)
 	{
-		std::cout << "	- Compute basic mesh features: ";
 		const double t_total = omp_get_wtime();
 
 		//--- compute medial axis transform features ---
+		std::cout << "	- Compute medial axis transform features " << std::endl;
 		medial_ball_features(smesh_out, cloud_sampled);
 
 		//--- compute relative elevation of point cloud ---
+		std::cout << "	- Compute relative elevation of point cloud " << std::endl;
 		local_elevation_for_pointcloud(smesh_out, cloud_ele, segment_out);
 
+		std::cout << "	- Compute basic mesh features: ";
 		//--- compute features ---
 		int prev_percent = -1;
 		for (int i = 0; i < segment_out.size(); ++i)
