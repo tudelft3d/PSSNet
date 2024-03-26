@@ -72,6 +72,7 @@ python partition/pssnet_partition.py --dataset custom_dataset --ROOT_PATH $CUSTO
 #### Learning
 To train the network.
 ```
+python learning/pssnet_custom_dataset.py
 CUDA_VISIBLE_DEVICES=0 python learning/pssnet_main.py --dataset custom_dataset --CUSTOM_SET_PATH $CUSTOM_SET_DIR --db_test_name testred --db_train_name trainval \
 --epochs 200 --lr_steps '[50, 100, 150]' --test_nth_epoch 100 --model_config 'gru_10_1_1_1_0,f_6' --ptn_nfeat_stn 6 \
 --nworkers 0 --pc_attrib xyzrgball --odir "../datasets/custom_set/results"
