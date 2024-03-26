@@ -70,6 +70,11 @@ python partition/pssnet_partition.py --dataset custom_dataset --ROOT_PATH $CUSTO
 ``` 
 
 #### Learning
+Generate the parsed data first.
+```
+python learning/pssnet_custom_dataset.py
+```
+
 To train the network.
 ```
 python learning/pssnet_custom_dataset.py
