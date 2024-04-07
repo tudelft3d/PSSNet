@@ -62,8 +62,8 @@ def get_info(args):
             edge_feats += 1
 
     if args.loss_weights == 'none':
-        #weights = np.ones((11,), dtype='f4')
-        weights = np.ones((6,), dtype='f4')
+        weights = np.ones((12,), dtype='f4')
+        #weights = np.ones((6,), dtype='f4')
     if args.loss_weights == 'proportional':
         weights = h5py.File(args.CUSTOM_SET_PATH + "/parsed/class_count.h5")["class_count"][:].astype('f4')
         weights = weights[:, [i for i in range(6) if i != args.cvfold - 1]].sum(1)
@@ -76,10 +76,13 @@ def get_info(args):
         # np.array([1, 1, 1, 1, 1, 1], dtype=np.int32)
         #segment num: 20650, 1824, 117812, 1017, 12765, 3331
         #H3D: 2584, 1816, 174, 1624, 1886, 1507, 2860, 1113, 400, 563, 171
-        num_per_class = np.array([20650, 1824, 117812, 1017, 12765, 3331], dtype=np.int32)
+        #SUMV2: 589720,425717,1061496,310500,38179,25023,485347,50290,19235,25415,26237,15031
+        #SUMV2_ segment: 17902,65896,39279,1671,8706,3287,15702,14933,3062,6711,5215,1475
+        num_per_class = np.array([5387,1738,15135,331,2230,447,6308,3109,1260,2161,2385,1079], dtype=np.int32)
         weight = num_per_class / float(sum(num_per_class))
         ce_label_weight = 1.0 / weight # weight, 1 / (weight + 0.02)
-        weights = np.expand_dims(ce_label_weight, axis=0).astype(np.float32)
+        #weights = np.expand_dims(ce_label_weight, axis=0).astype(np.float32)
+        weights = ce_label_weight.astype(np.float32)
         # add sqrt
         weights = np.sqrt(weights)
     weights = torch.from_numpy(weights).cuda() if args.cuda else torch.from_numpy(weights)
@@ -88,16 +91,16 @@ def get_info(args):
         'node_feats': args.ptn_nfeat_stn,
         'edge_feats': edge_feats,
         'class_weights': weights,
-        'classes': 6,  # CHANGE TO YOUR NUMBER OF CLASS, 4, 11
-        'inv_class_map': {0: 'ground', 1: 'vegetation', 2: 'building', 3: 'water', 4: 'car', 5: 'boat'},  # etc...
+        'classes': 12,  # CHANGE TO YOUR NUMBER OF CLASS, 6, 12
+        #'inv_class_map': {0: 'ground', 1: 'vegetation', 2: 'building', 3: 'water', 4: 'car', 5: 'boat'},  # etc...
         #'inv_class_map': {0: 'ground', 1: 'vegetation', 2: 'building', 3: 'vehicle'},  # C5...
-        #'inv_class_map': {0: 'Low_Vegetation', 1: 'Impervious_Surface', 2: 'Vehicle', 3: 'Urban_Furniture',  4: 'Roof', 5: 'Facade', 6: 'Shrub', 7: 'Tree', 8: 'Soil_Gravel', 9: 'Vertical_Surface', 10: 'Chimney'},  # C11...
+        'inv_class_map': {0: 'terrain', 1: 'high_vegetation', 2: 'facade_surface', 3: 'water',  4: 'car', 5: 'boat', 6: 'roof_surface', 7: 'chimney', 8: 'dormer', 9: 'balcony', 10: 'roof_installation', 11: 'wall'},  # C11...
     }
 
 def preprocess_pointclouds(CUSTOM_SET_PATH):
     """ Preprocesses data by splitting them by components and normalizing."""
 
-    for n in ['train', 'validate', 'test']: #'validate_for_test'
+    for n in ['train', 'validate', 'test']: #'validate_for_test'   'train', 'validate', 'test'
         pathP = '{}/parsed/{}/'.format(CUSTOM_SET_PATH, n)
         pathD = '{}/features/{}/'.format(CUSTOM_SET_PATH, n)
         pathC = '{}/superpoint_graphs/{}/'.format(CUSTOM_SET_PATH, n)
@@ -133,7 +136,7 @@ if __name__ == "__main__":
     import argparse
 
     parser = argparse.ArgumentParser(description='Large-scale Point Cloud Semantic Segmentation with Superpoint Graphs')
-    parser.add_argument('--CUSTOM_SET_PATH', default='../datasets/custom_set')
+    parser.add_argument('--CUSTOM_SET_PATH', default='../datasets/custom_set_sumv2')
     args = parser.parse_args()
     preprocess_pointclouds(args.CUSTOM_SET_PATH)
 

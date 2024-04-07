@@ -183,15 +183,15 @@ def scalar2ply(filename, xyz, scalar):
 def get_color_from_label(object_label, dataset):
     """associate the color corresponding to the class"""
     if dataset == 'custom_dataset':  # Custom set
-        object_label = {
-            0: [0, 0, 0],  # unlabelled .->. black
-            1: [170, 85, 0],  # 'ground' -> brown
-            2: [0, 255, 0],  # 'vegetation' -> green
-            3: [255, 255, 0],  # 'building' -> yellow
-            4: [0, 255, 255],  # 'water' -> blue
-            5: [255, 0, 255],  # 'vehicle'/'car' -> pink
-            6: [0, 0, 153],  # 'boat' -> purple
-        }.get(object_label, -1)
+        # object_label = {
+        #     0: [0, 0, 0],  # unlabelled .->. black
+        #     1: [170, 85, 0],  # 'ground' -> brown
+        #     2: [0, 255, 0],  # 'vegetation' -> green
+        #     3: [255, 255, 0],  # 'building' -> yellow
+        #     4: [0, 255, 255],  # 'water' -> blue
+        #     5: [255, 0, 255],  # 'vehicle'/'car' -> pink
+        #     6: [0, 0, 153],  # 'boat' -> purple
+        # }.get(object_label, -1)
 
         # object_label = {
         #     0: [0, 0, 0],  # unlabelled .->. black
@@ -215,6 +215,22 @@ def get_color_from_label(object_label, dataset):
         #     10: [252,225,5],    # Vertical Surface
         #     11: [128,0,0],     # Chimney
         # }.get(object_label, -1)
+
+        object_label = {
+            0: [0, 0, 0],  # unlabelled .->. black
+            1: [170, 85, 0],  # 'ground' -> brown
+            2: [0, 255, 0],  # 'vegetation' -> green
+            3: [255, 255, 0],  # 'building' -> yellow
+            4: [0, 255, 255],  # 'water' -> blue
+            5: [255, 0, 255],  # 'vehicle'/'car' -> pink
+            6: [0, 0, 153],  # 'boat' -> purple
+            7: [85, 85, 127],  # 'roof_surface'
+            8: [255, 50, 50],  # 'chimney'
+            9: [85, 0, 127],  # 'dormer'
+            10: [50, 125, 150],  # 'balcony'
+            11: [50, 0, 50],  # 'building_part'
+            12: [215, 160, 140]  # 'wall'
+        }.get(object_label, -1)
     else:
         raise ValueError('Unknown dataset: %s' % (dataset))
     if object_label == -1:

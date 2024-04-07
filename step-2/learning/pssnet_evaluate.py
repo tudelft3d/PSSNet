@@ -14,15 +14,16 @@ from metrics import *
 
 parser = argparse.ArgumentParser(description='Evaluation function for S3DIS')
 
-parser.add_argument('--odir', default='../datasets/custom_set/results', help='Directory to store results')
+parser.add_argument('--odir', default='../datasets/custom_set_sumv2/results', help='Directory to store results')
 
 args = parser.parse_args()
 
 
-n_labels = 6 #4 #11
-inv_class_map = {0:'ground', 1:'vegetation', 2:'building', 3:'water', 4:'car', 5:'boat'}
+n_labels = 12 #4 #11
+#inv_class_map = {0:'ground', 1:'vegetation', 2:'building', 3:'water', 4:'car', 5:'boat'}
 #inv_class_map = {0:'ground', 1:'vegetation', 2:'building', 3:'vehicle'}
 #inv_class_map = {0: 'Low_Vegetation', 1: 'Impervious_Surface', 2: 'Vehicle', 3: 'Urban_Furniture',  4: 'Roof', 5: 'Facade', 6: 'Shrub', 7: 'Tree', 8: 'Soil_Gravel', 9: 'Vertical_Surface', 10: 'Chimney'}
+inv_class_map = {0:'ground', 1:'vegetation', 2:'building', 3:'water', 4:'car', 5:'boat', 6:'roof_surface', 7:'chimney', 8:'dormer', 9:'balcony', 10:'roof_installation', 11:'wall'}
 base_name = args.odir
 
 C = ConfusionMatrix(n_labels)

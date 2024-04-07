@@ -18,8 +18,8 @@ from pssnet_provider import *
 
 parser = argparse.ArgumentParser(description='Large-scale Point Cloud Semantic Segmentation with Superpoint Graphs')
 parser.add_argument('--dataset', default='custom_dataset', help='dataset name: sema3d|s3dis')
-parser.add_argument('--ROOT_PATH', default='../datasets/custom_set', help='folder containing the ./data folder')
-parser.add_argument('--res_file', default='../datasets/custom_set/results/predictions_test',
+parser.add_argument('--ROOT_PATH', default='../datasets/custom_set_sumv2', help='folder containing the ./data folder')
+parser.add_argument('--res_file', default='../datasets/custom_set_sumv2/results/predictions_test',
                     help='folder containing the results')
 parser.add_argument('--upsample', default=1, type=int,
                     help='if 1, upsample the prediction to the original cloud (if the files is huge it can take a very long and use a lot of memory - avoid on sema3d)')
@@ -41,7 +41,7 @@ err_out = 'e' in args.output_type
 spg_out = 's' in args.output_type
 folder = 'test/'
 
-n_labels = 6 #11 #13 #6 #5
+n_labels = 12 #11 #13 #6 #5
 plyfiles = glob.glob(root + "data/" + folder + "*.ply")
 ply_folder = root + "clouds/" + folder
 n_files = len(plyfiles)

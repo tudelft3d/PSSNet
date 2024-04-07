@@ -35,21 +35,21 @@ from learning import pssnet_spg
 from learning import graphnet
 from learning import pointnet
 from learning import metrics
-
+from torch.utils.tensorboard import SummaryWriter
 def main():
     parser = argparse.ArgumentParser(description='Large-scale Point Cloud Semantic Segmentation with Superpoint Graphs')
 
     # Optimization arguments
     parser.add_argument('--wd', default=0, type=float, help='Weight decay')
-    parser.add_argument('--lr', default=1e-3, type=float, help='Initial learning rate')
+    parser.add_argument('--lr', default=1e-2, type=float, help='Initial learning rate')
     parser.add_argument('--lr_decay', default=0.7, type=float,
                         help='Multiplicative factor used on learning rate at `lr_steps`')
     parser.add_argument('--lr_steps', default='[]',
                         help='List of epochs where the learning rate is decreased by `lr_decay`')
     parser.add_argument('--momentum', default=0.9, type=float, help='Momentum')
-    parser.add_argument('--epochs', default=200, type=int,
+    parser.add_argument('--epochs', default=-1, type=int,
                         help='Number of epochs to train. If <=0, only testing will be done.')
-    parser.add_argument('--batch_size', default=2, type=int, help='Batch size')
+    parser.add_argument('--batch_size', default=1, type=int, help='Batch size')
     parser.add_argument('--optim', default='adam', help='Optimizer: sgd|adam')
     parser.add_argument('--grad_clip', default=1, type=float,
                         help='Element-wise clipping of gradient. If 0, does not clip')
@@ -58,10 +58,11 @@ def main():
 
     # Learning process arguments
     parser.add_argument('--cuda', default=1, type=int, help='Bool, use cuda')
-    parser.add_argument('--nworkers', default=0, type=int, #
+    parser.add_argument('--nworkers', default=0, type=int, #20
                         help='Num subprocesses to use for data loading. 0 means that the data will be loaded in the main process')
-    parser.add_argument('--test_nth_epoch', default=100, type=int, help='Test each n-th epoch during training')
+    parser.add_argument('--test_nth_epoch', default=1, type=int, help='Test each n-th epoch during training')
     parser.add_argument('--save_nth_epoch', default=1, type=int, help='Save model each n-th epoch during training')
+    parser.add_argument('--save_last_nth_epoch', default=10, type=int, help='Save model last n-th epoch during training')
     parser.add_argument('--test_multisamp_n', default=10, type=int,
                         help='Average logits obtained over runs with different seeds')
 
@@ -69,16 +70,16 @@ def main():
     parser.add_argument('--dataset', default='custom_dataset', help='Dataset name: sema3d|s3dis')
     parser.add_argument('--cvfold', default=0, type=int,
                         help='Fold left-out for testing in leave-one-out setting (S3DIS)')
-    parser.add_argument('--odir', default='../datasets/custom_set/results', help='Directory to store results')
+    parser.add_argument('--odir', default='../datasets/custom_set_sumv2/results', help='Directory to store results')
 
-    parser.add_argument('--resume', default='', help='Loads a previously saved model.')
+    parser.add_argument('--resume', default='RESUME', help='Loads a previously saved model.')
     parser.add_argument('--db_train_name', default='train')
     parser.add_argument('--db_test_name', default='test')
 
     parser.add_argument('--use_val_set', type=int, default=1)
-    parser.add_argument('--CUSTOM_SET_PATH', default='../datasets/custom_set')
+    parser.add_argument('--CUSTOM_SET_PATH', default='../datasets/custom_set_sumv2')
 
-    parser.add_argument('--model_config', default='gru_10_1_1_1_0,f_6', #SUM: f_6, H3D: f_11
+    parser.add_argument('--model_config', default='gru_10_1_1_1_1,f_12', #SUM: f_6, H3D: f_11
                         help='Defines the model as a sequence of layers, see graphnet.py for definitions of respective '
                              'layers and acceptable arguments. In short: rectype_repeats_mv_layernorm_ingate_concat, '
                              'with rectype the type of recurrent unit [gru/crf/lstm], repeats the number of message '
@@ -96,7 +97,7 @@ def main():
                         help='Point attributes fed to PointNets, if empty then all possible. xyz = coordinates, rgb = color, '
                              'v = verticality, p = planarity, s = sphericity, a = area, e = elevation, c = vertex_count, '
                              'm = interior mat radius')
-    parser.add_argument('--pc_augm_scale', default=0, type=float,
+    parser.add_argument('--pc_augm_scale', default=1.2, type=float,
                         help='Training augmentation: Uniformly random scaling in [1/scale, scale]')
     parser.add_argument('--pc_augm_rot', default=1, type=int,
                         help='Training augmentation: Bool, random rotation around z-axis')
@@ -115,7 +116,7 @@ def main():
                         help='Bool, use orthogonal weight initialization for filter gen net.')
     parser.add_argument('--fnet_bnidx', default=2, type=int,
                         help='Layer index to insert batchnorm to. -1=do not insert.')
-    parser.add_argument('--edge_mem_limit', default=30000, type=int,
+    parser.add_argument('--edge_mem_limit', default=30000, type=int, #30000
                         help='Number of edges to process in parallel during computation, a low number can reduce memory peaks.')
 
     # Superpoint graph
@@ -129,7 +130,7 @@ def main():
                         help='Artificially constrained maximum length of superedge, -1=do not constrain')
 
     # Point net
-    parser.add_argument('--ptn_minpts', default=10, type=int,
+    parser.add_argument('--ptn_minpts', default=20, type=int,
                         help='Minimum number of points in a superpoint for computing its embedding.')
     parser.add_argument('--ptn_npts', default=128, type=int, help='Number of input points for PointNet.')
     parser.add_argument('--ptn_widths', default='[[64,64,128,128,256],[256,128,128,64,64]]', help='PointNet widths')
@@ -146,7 +147,7 @@ def main():
                         help='Size of the decoder : sp_embedding -> sp_class. First layer of size sp_embed (* (1+n_ecc_iteration) if concatenation) and last layer is n_classes')
 
     parser.add_argument('--aug_labels', default='-1', help='123456 or -1 for not augmentation')
-    parser.add_argument('--use_pyg', default=0, type=int, help='Wether to use Pytorch Geometric for graph convolutions')
+    parser.add_argument('--use_pyg', default=1, type=int, help='Wether to use Pytorch Geometric for graph convolutions')
 
     args = parser.parse_args()
     args.start_epoch = 0
@@ -156,6 +157,7 @@ def main():
     args.sp_decoder_config = ast.literal_eval(args.sp_decoder_config)
     args.ptn_widths_stn = ast.literal_eval(args.ptn_widths_stn)
 
+    writer = SummaryWriter()
     print('Will save to ' + args.odir)
     if not os.path.exists(args.odir):
         os.makedirs(args.odir)
@@ -178,7 +180,7 @@ def main():
 
     # Create model and optimizer
     if args.resume != '':
-        if args.resume == 'RESUME': args.resume = args.odir + '/model.pth.tar'
+        if args.resume == 'RESUME': args.resume = args.odir + '/' + args.model_name + '.pth.tar'
         model, optimizer, stats = resume(args, dbinfo)
     else:
         model = create_model(args, dbinfo)
@@ -357,6 +359,9 @@ def main():
         best_iou = stats[-1]['best_iou']
     except:
         best_iou = 0
+        ###best test iou###
+        test_best_iou = 0
+        ###################
     TRAIN_COLOR = '\033[0m'
     VAL_COLOR = '\033[0;94m'
     TEST_COLOR = '\033[0;93m'
@@ -371,6 +376,11 @@ def main():
 
         print(TRAIN_COLOR + '-> Train Loss: %1.4f   Train accuracy: %3.2f%%' % (loss, acc))
 
+        writer.add_scalar("Loss/train", loss, epoch)
+        writer.add_scalar("acc/train", acc, epoch)
+        writer.add_scalar("oacc/train", oacc, epoch)
+        writer.add_scalar("iou/train", avg_iou, epoch)
+
         new_best_model = False
         if args.use_val_set:
             acc_val, loss_val, oacc_val, avg_iou_val, avg_acc_val = eval(True)
@@ -384,6 +394,12 @@ def main():
                 torch.save({'epoch': epoch + 1, 'args': args, 'state_dict': model.state_dict(),
                             'optimizer': optimizer.state_dict(), 'scaler': scaler},
                            os.path.join(args.odir, 'model.pth.tar'))
+
+            writer.add_scalar("Loss/val", loss_val, epoch)
+            writer.add_scalar("acc/val", acc_val, epoch)
+            writer.add_scalar("oacc/val", oacc_val, epoch)
+            writer.add_scalar("iou/val", avg_iou_val, epoch)
+
         elif epoch % args.save_nth_epoch == 0 or epoch == args.epochs - 1:
             torch.save({'epoch': epoch + 1, 'args': args, 'state_dict': model.state_dict(),
                         'optimizer': optimizer.state_dict(), 'scaler': scaler},
@@ -401,14 +417,34 @@ def main():
         stats.append({'epoch': epoch, 'acc': acc, 'loss': loss, 'oacc': oacc, 'avg_iou': avg_iou, 'acc_test': acc_test,
                       'oacc_test': oacc_test, 'avg_iou_test': avg_iou_test, 'avg_acc_test': avg_acc_test,
                       'best_iou': best_iou})
-        '''
-        if epoch % args.save_nth_epoch == 0 or epoch == args.epochs - 1:
+
+        writer.add_scalar("Loss/test", loss_test, epoch)
+        writer.add_scalar("acc/test", acc_test, epoch)
+        writer.add_scalar("oacc/test", oacc_test, epoch)
+        writer.add_scalar("iou/test", avg_iou_test, epoch)
+
+        ###save best test iou###
+        if avg_iou_test > test_best_iou:
+            print(TEST_COLOR + '-> New best model on test data achieved!' + TRAIN_COLOR)
+            test_best_iou = avg_iou_test
+            torch.save({'epoch': epoch + 1, 'args': args, 'state_dict': model.state_dict(),
+                        'optimizer': optimizer.state_dict(), 'scaler': scaler},
+                       os.path.join(args.odir, 'model_test_best.pth.tar'))
+
+            torch.save({'epoch': epoch + 1, 'args': args, 'state_dict': model.state_dict(),
+                        'optimizer': optimizer.state_dict(), 'scaler': scaler},
+                       os.path.join(args.odir, 'model_test_best_E' + str(epoch)+ '.pth.tar'))
+
+        ###################
+
+
+        if args.epochs - epoch <= args.save_last_nth_epoch:
             with open(os.path.join(args.odir, 'trainlog.json'), 'w') as outfile:
                 json.dump(stats, outfile, indent=4)
             torch.save({'epoch': epoch + 1, 'args': args, 'state_dict': model.state_dict(),
                         'optimizer': optimizer.state_dict(), 'scaler': scaler},
-                       os.path.join(args.odir, 'model.pth.tar'))
-        '''
+                       os.path.join(args.odir,  'model_E' + str(epoch) + '.pth.tar'))
+
         if math.isnan(loss): break
 
     if len(stats) > 0:
@@ -416,7 +452,7 @@ def main():
             json.dump(stats, outfile, indent=4)
 
     if args.use_val_set:
-        args.resume = args.odir + '/model.pth.tar'
+        args.resume = args.odir + '/' + args.model_name + '.pth.tar'  #model select
         model, optimizer, stats = resume(args, dbinfo)
         torch.save(
             {'epoch': epoch + 1, 'args': args, 'state_dict': model.state_dict(), 'optimizer': optimizer.state_dict()},
@@ -436,6 +472,8 @@ def main():
                         'avg_acc_test': avg_acc_test}], outfile)
         np.save(os.path.join(args.odir, 'pointwise_cm.npy'), confusion_matrix)
 
+    writer.flush()
+    writer.close()
 
 def resume(args, dbinfo):
     """ Loads model and optimizer state from a previous checkpoint. """
@@ -517,4 +555,7 @@ def meter_value(meter):
 
 
 if __name__ == "__main__":
+    # print("Sleeping for 4 hours starting now...")
+    # time.sleep(19500)  # Sleep for 7200 seconds (2 hours)
+    # print("Awake now and executing the next line of code!")
     main()

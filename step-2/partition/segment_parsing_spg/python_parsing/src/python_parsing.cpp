@@ -1,5 +1,6 @@
 #include <iostream>
 #include <cstdio>
+#include <map>
 #include <vector>
 #include <boost/python.hpp>
 #include <boost/python/numpy.hpp>

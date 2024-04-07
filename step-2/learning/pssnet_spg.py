@@ -297,12 +297,13 @@ def load_superpoint(args, fname, id, train, test_seed_offset, s_label):
         P = np.concatenate(columns, axis=1)
     if train:
     #check if the data is in augmentation label list
-        if args.aug_labels != '-1':
-            if args.aug_labels != '':
-                if str(s_label) in args.aug_labels:
-                    P = augment_cloud(P, args)
-            else:
-                P = augment_cloud(P, args)
+        P = augment_cloud(P, args)
+        # if args.aug_labels != '-1':
+        #     if args.aug_labels != '':
+        #         if str(s_label) in args.aug_labels:
+        #             P = augment_cloud(P, args)
+        #     else:
+        #         P = augment_cloud(P, args)
     return P, additional_feas
 
 def augment_cloud(P, args):

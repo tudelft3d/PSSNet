@@ -20,7 +20,7 @@ from pssnet_graphs import *
 from pssnet_provider import *
 
 parser = argparse.ArgumentParser(description='PSSNet: Planarity-sensible Semantic Segmentation of Large-scale Urban Meshes')
-parser.add_argument('--ROOT_PATH', default='../datasets/custom_set')
+parser.add_argument('--ROOT_PATH', default='../datasets/custom_set_sumv2')
 parser.add_argument('--dataset', default='custom_dataset', help='data')
 parser.add_argument('--d_se_max', default=0, type=float, help='max length of super edges')
 parser.add_argument('--overwrite', default=0, type=int, help='Wether to read existing files or overwrite them')
@@ -30,7 +30,7 @@ args = parser.parse_args()
 root = args.ROOT_PATH + '/'
 # list of subfolders to be processed
 folders = ["train/", "test/", "validate/"] # "train/", "test/", "validate/","validate_for_test/"
-n_labels = 6 #11 # number of classes: h3d: 11, merged: 4, sum: 6
+n_labels = 12 # number of classes: h3d: 11, merged: 4, sum: 6, sumv2: 12
 
 times = [0, 0, 0]  # time for computing: features / partition / spg
 

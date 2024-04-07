@@ -87,11 +87,6 @@ def compute_pssnet_sp_graph(xyz, d_max, in_component, components, pssnetg_edges,
     in_component = np.array(in_component)
     has_labels = len(labels) > 1
     label_hist = has_labels and len(labels.shape) > 1 and labels.shape[1] > 1
-    # ---compute delaunay triangulation---
-    edges = np.zeros(1)
-    edges_added = np.zeros(1)
-    edge_comp_delaunay= np.zeros(1)
-    num_delaunay_edges = 0
 
     print("    Add edges from input graph ...")
     pssnetg_edges = np.unique(pssnetg_edges, axis=1)
@@ -312,8 +307,6 @@ def compute_pssnet_sp_graph(xyz, d_max, in_component, components, pssnetg_edges,
             graph["sp_point_val_bin_3"][i_com] = fea_com[i_com, 45]
             graph["sp_point_val_bin_4"][i_com] = fea_com[i_com, 46]
         else:
-            ev = LA.eig(np.cov(np.transpose(xyz_sp), rowvar=True))
-            ev = -np.sort(-ev[0])  # descending order
             graph["sp_centroids"][i_com] = np.mean(xyz_sp, axis=0)
 
             # Eigen features
@@ -405,6 +398,5 @@ def compute_pssnet_sp_graph(xyz, d_max, in_component, components, pssnetg_edges,
             else:
                 graph["se_delta_mean"][i_sedg, :] = delta
                 graph["se_delta_std"][i_sedg, :] = [0, 0, 0]
-    print("Graph nodes", n_com, ", Graph edges all: ", n_real_edge, ", Delaunay edges: ", num_delaunay_edges,
-          ", My-Graph edges: ", n_sedg - num_delaunay_edges)
+    print("Graph nodes", n_com, ", Graph edges all: ", n_real_edge, ", Segment graph edges: ", n_sedg)
     return graph
