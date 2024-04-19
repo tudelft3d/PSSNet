@@ -1568,6 +1568,16 @@ namespace semantic_mesh_segmentation
 			break;
 		}
 
+		case operating_mode::Annotated_mesh_evaluation_v2:
+		{
+			current_mode = operating_mode::Annotated_mesh_evaluation_v2;
+			std::cout << "--------------------- Annotated_mesh_evaluation_v2 ---------------------" << std::endl;
+			labels_name_pnp.clear();
+			labels_name_pnp.insert(labels_name_pnp.end(), labels_name.begin(), labels_name.end());
+			compare_gt_and_pred_mesh();
+			break;
+		}
+
 		default:
 		{
 			std::cerr << std::endl << "No operation model has been chosen!!!" << std::endl;

@@ -1888,4 +1888,107 @@ namespace semantic_mesh_segmentation
 		}
 	}
 
+	void semantic_to_component(SFMesh* smesh_in)
+	{
+		int R = rand() % 256;
+		int G = rand() % 256;
+		int B = rand() % 256;
+		std::srand(std::time(0));
+
+		smesh_in->get_face_truth_label = smesh_in->get_face_property<int>("f:label");
+		smesh_in->add_face_property<bool>("f:visited_check", false);
+		auto get_face_visited_check = smesh_in->get_face_property<bool>("f:visited_check");
+		smesh_in->get_face_color = smesh_in->get_face_property<vec3>("f:color");
+
+		int seg_ind = 0;
+		std::vector<std::vector<SFMesh::Face>> final_regions;
+		for (auto f : smesh_in->faces())
+		{
+			std::vector<SFMesh::Face> current_region;
+			if (!get_face_visited_check[f])
+				get_face_visited_check[f] = true;
+			else
+				continue;
+
+			int seed_label = smesh_in->get_face_truth_label[f];
+			current_region.emplace_back(f);
+			for (int ci = 0; ci < current_region.size(); ++ci)
+			{
+				SFMesh::HalfedgeAroundFaceCirculator h_fit = smesh_in->halfedges(current_region[ci]);
+				SFMesh::HalfedgeAroundFaceCirculator h_end = h_fit;
+				do
+				{
+					SFMesh::Halfedge ho = smesh_in->opposite_halfedge(*h_fit);
+					if (smesh_in->is_boundary(ho) == false)
+					{
+						SFMesh::Face l = smesh_in->face(ho);
+						if (smesh_in->get_face_truth_label[l] == seed_label
+							&& !get_face_visited_check[l])
+						{
+							get_face_visited_check[l] = true;
+							current_region.emplace_back(l);
+						}
+					}
+					++h_fit;
+				} while (h_fit != h_end);
+			}
+
+			R = rand() % 256;
+			G = rand() % 256;
+			B = rand() % 256;
+
+			for (int fi = 0; fi < current_region.size(); ++fi)
+			{
+				smesh_in->get_face_segment_id[current_region[fi]] = seg_ind;
+				smesh_in->get_face_color[current_region[fi]] = vec3(R / 255.0f, G / 255.0f, B / 255.0f);
+			}
+			final_regions.push_back(current_region);
+			++seg_ind;
+		}
+
+		std::cout << "final region = " << final_regions.size() << std::endl;
+	}
+
+	void compare_gt_and_pred_mesh()
+	{
+		//semantic evaluation
+		std::vector<int> face_truth_label, face_test_label;
+		std::vector<float> face_area_weighted;
+
+		SFMesh* smesh_gt = new SFMesh;
+		read_test_mesh_data(smesh_gt, gt_path);
+
+		SFMesh* smesh_pred = new SFMesh;
+		read_test_mesh_data(smesh_pred, pred_path);
+
+		for (auto fd : smesh_gt->faces())
+		{
+			face_truth_label.push_back(smesh_gt->get_face_truth_label[fd]);
+			smesh_gt->get_face_area[fd] = FaceArea(smesh_gt, fd);
+			face_area_weighted.push_back(smesh_gt->get_face_area[fd]);
+		}
+
+		for (auto fd : smesh_pred->faces())
+		{
+			face_test_label.push_back(smesh_pred->get_face_truth_label[fd]);
+			smesh_pred->get_face_area[fd] = FaceArea(smesh_pred, fd);
+		}
+
+		Label_set labels;
+		add_labels(labels);
+		evaluation_test_data(labels, face_truth_label, face_test_label, face_area_weighted);
+
+		//boundary evaluation
+		semantic_to_component(smesh_gt);
+		semantic_to_component(smesh_pred);
+
+		all_eval* all_seg_evaluation = new all_eval();
+
+		oversegmentation_evaluation(smesh_gt, smesh_pred, all_seg_evaluation);
+
+		delete all_seg_evaluation;
+		delete smesh_gt;
+		delete smesh_pred;
+	}
+
 }

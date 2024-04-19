@@ -157,6 +157,12 @@ namespace semantic_mesh_segmentation
 
 	void read_txt_config(const std::string &path);
 
+	void read_test_mesh_data
+	(
+		SFMesh* ,
+		std::string 
+	);
+
 	//-----------------write data-----------------//
 	void rply_output(SFMesh*, const char*, const std::vector<std::string> &);
 

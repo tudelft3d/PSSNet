@@ -67,7 +67,8 @@ namespace semantic_mesh_segmentation
 		PSSNet_graph_construction,
 		PSSNet_graph_construction_backbone,
 		PSSNet_pcl_generation_for_GCN,
-		PSSNet_pcl_generation_for_GCN_backbone
+		PSSNet_pcl_generation_for_GCN_backbone,
+		Annotated_mesh_evaluation_v2
 	};
 
 	//--- global variables for point cloud sampling ---
@@ -277,6 +278,8 @@ namespace semantic_mesh_segmentation
 	extern int cutoff_spf_vertex_count, border_growing_neighbor;
 	extern float cutoff_spfcompact_max;
 	extern std::pair<bool, int> ignore_mesh_boundary;
+
+	extern std::string gt_path, pred_path;
 }
 
 #endif // 

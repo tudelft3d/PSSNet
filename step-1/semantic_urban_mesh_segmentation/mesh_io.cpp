@@ -737,6 +737,32 @@ namespace semantic_mesh_segmentation
 		//std::cout << "  The total number of input texture image:  " << texture_maps_temp.size() << '\n' << std::endl;
 	}
 
+	void read_test_mesh_data
+	(
+		SFMesh* smesh_out,
+		std::string mesh_str_temp
+	)
+	{
+		char* meshPath_temp = (char*)mesh_str_temp.data();
+		rply_input(smesh_out, meshPath_temp);
+
+		//mesh vertex properties
+		smesh_out->get_points_coord = smesh_out->get_vertex_property<vec3>("v:point");
+
+		//mesh face properties
+		if (smesh_out->get_face_property<int>("f:" + label_definition))
+			smesh_out->get_face_truth_label = smesh_out->get_face_property<int>("f:" + label_definition);
+		else
+		{
+			smesh_out->add_face_property<int>("f:" + label_definition, -1);
+			smesh_out->get_face_truth_label = smesh_out->get_face_property<int>("f:" + label_definition);
+		}
+
+		std::cout << "  The total number of input triangle facets:  " << smesh_out->faces_size() << '\n' << std::endl;
+		std::cout << "  The total number of input edges:  " << smesh_out->edges_size() << '\n' << std::endl;
+		std::cout << "  The total number of input vertices:  " << smesh_out->vertices_size() << '\n' << std::endl;
+		//std::cout << "  The total number of input texture image:  " << texture_maps_temp.size() << '\n' << std::endl;
+	}
 
 	//For nodes attributes that are constructed
 	void read_graph_nodes_ply
@@ -1199,6 +1225,10 @@ namespace semantic_mesh_segmentation
 							else if (param_value == "PSSNet_pcl_generation_for_GCN")
 							{
 								current_mode = operating_mode::PSSNet_pcl_generation_for_GCN;
+							}
+							else if (param_value == "Annotated_mesh_evaluation_v2")
+							{
+								current_mode = operating_mode::Annotated_mesh_evaluation_v2;
 							}
 						}
 					}
@@ -2158,6 +2188,16 @@ namespace semantic_mesh_segmentation
 							pcl_k_nn = std::stoi(param_value);
 					}
 
+					else if (param_name == "gt_path")
+					{
+						if (param_value != "default")
+							gt_path = param_value;
+					}
+					else if (param_name == "pred_path")
+					{
+						if (param_value != "default")
+							pred_path = param_value;
+					}
 				}
 
 				++line_number;

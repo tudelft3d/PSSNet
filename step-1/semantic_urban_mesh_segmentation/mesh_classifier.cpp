@@ -764,6 +764,31 @@ namespace semantic_mesh_segmentation
 
 		save_txt_evaluation(labels, evaluation, evaluation_out, -1);
 	}
+
+	void evaluation_test_data
+	(
+		Label_set& labels,
+		std::vector<int>& face_truth_label,
+		std::vector<int>& face_test_label,
+		std::vector<float>& face_area_weighted
+	)
+	{
+		//Evaluation based on each face, not on segment!!!
+		std::cerr << "Precision, recall, F1 scores and IoU:" << std::endl;
+		CGAL::Classification::Evaluation evaluation(labels, face_truth_label, face_test_label, face_area_weighted);
+		for (std::size_t i = 0; i < labels.size(); ++i)
+		{
+			std::cerr << " * " << labels[i]->name() << ": "
+				<< evaluation.precision(labels[i]) << " ; "
+				<< evaluation.recall(labels[i]) << " ; "
+				<< evaluation.f1_score(labels[i]) << " ; "
+				<< evaluation.intersection_over_union(labels[i]) << std::endl;
+		}
+		std::cerr << "Mean Accuracy = " << evaluation.mean_accuracy() << std::endl
+			<< "Overall Accuracy = " << evaluation.accuracy() << std::endl
+			<< "mean F1 score = " << evaluation.mean_f1_score() << std::endl
+			<< "mean IoU = " << evaluation.mean_intersection_over_union() << std::endl;
+	}
 	
 	//----------------------------------------------- Joint energy computation -----------------------------------------//
 	void joint_labeling_energy //for test data only
@@ -1478,5 +1503,62 @@ namespace semantic_mesh_segmentation
 				evaluation_all, mi
 			);
 		}
+	}
+
+	void oversegmentation_evaluation
+	(
+		SFMesh* smesh_g,//ground truth
+		SFMesh* smesh_t, //test data
+		all_eval* all_seg_evaluation
+	)
+	{
+		//-------------Segment purity evaluation-------------//
+		//ground truth dominant segment id, intersected area, truth segment total area  
+		std::map<int, float> label_asa, label_ue, label_sumarea;
+		std::vector<int> t_ind_vec, g_ind_vec;//valid test and ground truth data, not include unknown area
+		segment_purity_evaluation
+		(
+			smesh_g,
+			smesh_t,
+			label_asa,
+			label_ue,
+			label_sumarea,
+			t_ind_vec,
+			g_ind_vec
+		);
+		std::vector<float> asa_out(labels_name_pnp.size() + 1, 0.0f);
+		compute_asa(all_seg_evaluation, asa_out, label_asa, label_ue, label_sumarea);
+
+		std::vector<float> gc_tc_out(3, 0.0f);
+		int test_count = t_ind_vec.size(), ground_count = g_ind_vec.size();
+		compute_gc_tc(test_count, ground_count, gc_tc_out, all_seg_evaluation);
+
+		//-------------Boundary evaluation-------------//
+		float boundary_num_t = 0.0f, boundary_num_g = 0.0f, intersect_edges = 0.0f;
+		int n_rings = 2;
+		boundary_evaluation
+		(
+			smesh_g,//ground truth
+			smesh_t, //test data
+			boundary_num_t,
+			boundary_num_g,
+			intersect_edges,
+			n_rings
+		);
+
+		std::vector<float> br_out(5, 0.0f);
+		compute_br(boundary_num_g, boundary_num_t, intersect_edges, br_out, all_seg_evaluation);
+
+		compute_asa(all_seg_evaluation);
+		test_count = all_seg_evaluation->segment_count_gctc[0];
+		ground_count = all_seg_evaluation->segment_count_gctc[1];
+		compute_gc_tc(test_count, ground_count, gc_tc_out);
+		//compute_br(boundary_num_g, boundary_num_t, intersect_edges, br_out);
+
+		std::cout << "Ground truth edges = " << boundary_num_g << std::endl <<
+			";Predicted edges = " << boundary_num_t << std::endl <<
+			";Intersected edges = " << intersect_edges << std::endl <<
+			"BR = " << all_seg_evaluation->boundary_evaluation[3] <<
+			";\tBP = " << all_seg_evaluation->boundary_evaluation[4] << std::endl;
 	}
 }

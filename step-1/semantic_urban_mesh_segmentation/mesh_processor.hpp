@@ -254,5 +254,9 @@ namespace semantic_mesh_segmentation
 	);
 
 	void smote_data_augmentation();
+
+	void semantic_to_component(SFMesh*);
+
+	void compare_gt_and_pred_mesh();
 }
 #endif

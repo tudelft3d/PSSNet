@@ -469,6 +469,9 @@ namespace semantic_mesh_segmentation
 	std::vector<std::string> batch_ignored_str = { "Tile" };
 	std::string batch_delim_separate_char = "_+";//"_" for Den Haag; "_+" for Helsinki
 
+	//annotated mesh evaluation
+	std::string gt_path, pred_path;
+
 	//****************** files / folders / format / feature names ******************
 	std::vector<std::string> file_formats
 	{

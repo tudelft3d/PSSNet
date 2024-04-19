@@ -410,5 +410,20 @@ namespace semantic_mesh_segmentation
 	void boundary_evaluation(SFMesh *, SFMesh *, float &, float &, float &, int &);
 
 	void oversegmentation_evaluation(SFMesh *, SFMesh *, const int, all_eval *);
+
+	void oversegmentation_evaluation
+	(
+		SFMesh* ,//ground truth
+		SFMesh* , //test data
+		all_eval* 
+	);
+
+	void evaluation_test_data
+	(
+		Label_set&,
+		std::vector<int>&,
+		std::vector<int>&,
+		std::vector<float>&
+	);
 }
 #endif//semantic_mesh_segmentation__MESH_CLASSIFIER_HPP
