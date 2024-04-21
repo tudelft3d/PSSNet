@@ -3459,9 +3459,11 @@ namespace semantic_mesh_segmentation
 		fout << "Border\n";
 		fout << "Num edges truth : \t" << int(br_out[0]) << "\n";
 		fout << "Num edges pred : \t" << int(br_out[1]) << "\n";
-		fout << "Num edges Intersec : \t" << int(br_out[2]) << "\n";
-		fout << "BR : \t" << std::fixed << std::showpoint << std::setprecision(6) << br_out[3] << "\n";
-		fout << "BP : \t" << std::fixed << std::showpoint << std::setprecision(6) << br_out[4] << "\n";
+		fout << "Num edges Intersected : \t" << int(br_out[2]) << "\n";
+		fout << "Num edges Union : \t" << int(br_out[3]) << "\n";
+		fout << "BR : \t" << std::fixed << std::showpoint << std::setprecision(6) << br_out[4] << "\n";
+		fout << "BP : \t" << std::fixed << std::showpoint << std::setprecision(6) << br_out[5] << "\n";
+		fout << "mBIoU : \t" << std::fixed << std::showpoint << std::setprecision(6) << br_out[6] << "\n";
 
 		fout.close();
 	}

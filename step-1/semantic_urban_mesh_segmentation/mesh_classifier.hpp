@@ -51,7 +51,7 @@ namespace semantic_mesh_segmentation
 		std::vector<float> label_sumarea = std::vector<float>(labels_name_pnp.size(), 0.0f);
 		std::vector<float> asa_out = std::vector<float>(labels_name_pnp.size() + 1, 0.0f);
 		std::vector<float> segment_count_gctc = std::vector<float>(3, 0.0f);
-		std::vector<float> boundary_evaluation = std::vector<float>(5, 0.0f);
+		std::vector<float> boundary_evaluation = std::vector<float>(7, 0.0f);
 		all_eval() {};
 	};
 
@@ -165,6 +165,7 @@ namespace semantic_mesh_segmentation
 		float &boundary_num_g,
 		float &boundary_num_t,
 		float &intersect_edges,
+		float &union_edges,
 		std::vector<float> &br_out = std::vector<float>(),
 		all_eval *all_seg_evaluation = nullptr
 	)
@@ -176,6 +177,7 @@ namespace semantic_mesh_segmentation
 			br_out[2] = intersect_edges;
 			br_out[3] = float(intersect_edges) / float(boundary_num_g);
 			br_out[4] = float(intersect_edges) / float(boundary_num_t);
+			br_out[5] = float(intersect_edges) / float(union_edges);
 		}
 
 		//accumulate all
@@ -184,14 +186,18 @@ namespace semantic_mesh_segmentation
 			all_seg_evaluation->boundary_evaluation[0] += boundary_num_g;
 			all_seg_evaluation->boundary_evaluation[1] += boundary_num_t;
 			all_seg_evaluation->boundary_evaluation[2] += intersect_edges;
-			all_seg_evaluation->boundary_evaluation[3] = float(all_seg_evaluation->boundary_evaluation[2]) / float(all_seg_evaluation->boundary_evaluation[0]);
-			all_seg_evaluation->boundary_evaluation[4] = float(all_seg_evaluation->boundary_evaluation[2]) / float(all_seg_evaluation->boundary_evaluation[1]);
-
+			all_seg_evaluation->boundary_evaluation[3] += union_edges;
+			all_seg_evaluation->boundary_evaluation[4] = float(all_seg_evaluation->boundary_evaluation[2]) / float(all_seg_evaluation->boundary_evaluation[0]);
+			all_seg_evaluation->boundary_evaluation[5] = float(all_seg_evaluation->boundary_evaluation[2]) / float(all_seg_evaluation->boundary_evaluation[1]);
+			all_seg_evaluation->boundary_evaluation[6] = float(all_seg_evaluation->boundary_evaluation[2]) / float(all_seg_evaluation->boundary_evaluation[3]);
+			
 			std::cout << "Ground truth edges = " << boundary_num_g << std::endl <<
 				";Predicted edges = " << boundary_num_t << std::endl <<
 				";Intersected edges = " << intersect_edges << std::endl <<
+				";Unioned edges = " << union_edges << std::endl <<
 				"BR = " << float(intersect_edges) / float(boundary_num_g) <<
-				";\tBP = " << float(intersect_edges) / float(boundary_num_t) << std::endl;
+				";\tBP = " << float(intersect_edges) / float(boundary_num_t) <<
+				";\tBIoU = " << float(intersect_edges) / float(union_edges) << std::endl;
 		}
 	}
 
@@ -407,7 +413,7 @@ namespace semantic_mesh_segmentation
 
 	void segment_purity_evaluation(SFMesh *, SFMesh *, std::map<int, float> &, std::map<int, float> &, std::map<int, float> &, std::vector<int> &, std::vector<int> &);
 
-	void boundary_evaluation(SFMesh *, SFMesh *, float &, float &, float &, int &);
+	void boundary_evaluation(SFMesh *, SFMesh *, float &, float &, float &, float&, int &);
 
 	void oversegmentation_evaluation(SFMesh *, SFMesh *, const int, all_eval *);
 

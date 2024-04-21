@@ -1328,6 +1328,7 @@ namespace semantic_mesh_segmentation
 		float &boundary_num_t,
 		float &boundary_num_g,
 		float &intersect_edges,
+		float &union_edges,
 		int &n_ring
 	)
 	{
@@ -1356,11 +1357,13 @@ namespace semantic_mesh_segmentation
 			SFMesh::Vertex vs = smesh_t->vertex(edx, 0);
 			SFMesh::Vertex vt = smesh_t->vertex(edx, 1);
 			float tmp_length = (smesh_t->get_points_coord[vt] - smesh_t->get_points_coord[vs]).length();
+
+			if (f0_id_test != f1_id_test || f0_id_truth != f1_id_truth)
+				union_edges += tmp_length;
+
 			if (f0_id_test != f1_id_test)
 			{
 				smesh_t->get_edge_boundary_predict[edx] = 1;
-				SFMesh::Vertex vs = smesh_t->vertex(edx, 0);
-				SFMesh::Vertex vt = smesh_t->vertex(edx, 1);
 				boundary_num_t += tmp_length;
 			}
 
@@ -1409,7 +1412,6 @@ namespace semantic_mesh_segmentation
 				}
 			}
 		}
-
 	}
 
 	//
@@ -1443,7 +1445,7 @@ namespace semantic_mesh_segmentation
 		compute_gc_tc(test_count, ground_count, gc_tc_out, all_seg_evaluation);
 
 		//-------------Boundary evaluation-------------//
-		float boundary_num_t = 0.0f, boundary_num_g = 0.0f, intersect_edges = 0.0f;
+		float boundary_num_t = 0.0f, boundary_num_g = 0.0f, intersect_edges = 0.0f, union_edges = 0.0f;
 		int n_rings = 2;
 		boundary_evaluation
 		(
@@ -1452,11 +1454,12 @@ namespace semantic_mesh_segmentation
 			boundary_num_t,
 			boundary_num_g,
 			intersect_edges,
+			union_edges,
 			n_rings
 		);
 
-		std::vector<float> br_out(5, 0.0f);
-		compute_br(boundary_num_g, boundary_num_t, intersect_edges, br_out, all_seg_evaluation);
+		std::vector<float> br_out(6, 0.0f);
+		compute_br(boundary_num_g, boundary_num_t, intersect_edges, union_edges, br_out, all_seg_evaluation);
 
 		std::ostringstream evaluation_out;
 		evaluation_out
@@ -1482,8 +1485,10 @@ namespace semantic_mesh_segmentation
 			std::cout << "Ground truth edges = " << boundary_num_g << std::endl <<
 				";Predicted edges = " << boundary_num_t << std::endl <<
 				";Intersected edges = " << intersect_edges << std::endl <<
-				"BR = " << all_seg_evaluation->boundary_evaluation[3] <<
-				";\tBP = " << all_seg_evaluation->boundary_evaluation[4] << std::endl;
+				";Unioned edges = " << union_edges << std::endl <<
+				"BR = " << all_seg_evaluation->boundary_evaluation[4] <<
+				";\tBP = " << all_seg_evaluation->boundary_evaluation[5] <<
+				";\tmBIoU = " << all_seg_evaluation->boundary_evaluation[6] << std::endl;
 
 			std::ostringstream evaluation_all;
 			evaluation_all
@@ -1534,7 +1539,7 @@ namespace semantic_mesh_segmentation
 		compute_gc_tc(test_count, ground_count, gc_tc_out, all_seg_evaluation);
 
 		//-------------Boundary evaluation-------------//
-		float boundary_num_t = 0.0f, boundary_num_g = 0.0f, intersect_edges = 0.0f;
+		float boundary_num_t = 0.0f, boundary_num_g = 0.0f, intersect_edges = 0.0f, union_edges = 0.0f;
 		int n_rings = 2;
 		boundary_evaluation
 		(
@@ -1543,11 +1548,12 @@ namespace semantic_mesh_segmentation
 			boundary_num_t,
 			boundary_num_g,
 			intersect_edges,
+			union_edges,
 			n_rings
 		);
 
 		std::vector<float> br_out(5, 0.0f);
-		compute_br(boundary_num_g, boundary_num_t, intersect_edges, br_out, all_seg_evaluation);
+		compute_br(boundary_num_g, boundary_num_t, intersect_edges, union_edges, br_out, all_seg_evaluation);
 
 		compute_asa(all_seg_evaluation);
 		test_count = all_seg_evaluation->segment_count_gctc[0];
@@ -1558,7 +1564,9 @@ namespace semantic_mesh_segmentation
 		std::cout << "Ground truth edges = " << boundary_num_g << std::endl <<
 			";Predicted edges = " << boundary_num_t << std::endl <<
 			";Intersected edges = " << intersect_edges << std::endl <<
-			"BR = " << all_seg_evaluation->boundary_evaluation[3] <<
-			";\tBP = " << all_seg_evaluation->boundary_evaluation[4] << std::endl;
+			";Unioned edges = " << union_edges << std::endl <<
+			"BR = " << all_seg_evaluation->boundary_evaluation[4] <<
+			";\tBP = " << all_seg_evaluation->boundary_evaluation[5] <<
+			";\tmBIoU = " << all_seg_evaluation->boundary_evaluation[6] << std::endl;
 	}
 }
