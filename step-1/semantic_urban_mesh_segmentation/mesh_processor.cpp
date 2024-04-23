@@ -1961,15 +1961,17 @@ namespace semantic_mesh_segmentation
 		SFMesh* smesh_pred = new SFMesh;
 		read_test_mesh_data(smesh_pred, pred_path);
 
-		for (auto fd : smesh_gt->faces())
+		for (auto &fd : smesh_gt->faces())
 		{
+			smesh_gt->get_face_truth_label[fd] -= label_minus;
 			face_truth_label.push_back(smesh_gt->get_face_truth_label[fd]);
 			smesh_gt->get_face_area[fd] = FaceArea(smesh_gt, fd);
 			face_area_weighted.push_back(smesh_gt->get_face_area[fd]);
 		}
 
-		for (auto fd : smesh_pred->faces())
+		for (auto &fd : smesh_pred->faces())
 		{
+			smesh_pred->get_face_truth_label[fd] -= label_minus;
 			face_test_label.push_back(smesh_pred->get_face_truth_label[fd]);
 			smesh_pred->get_face_area[fd] = FaceArea(smesh_pred, fd);
 		}
