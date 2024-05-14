@@ -1114,7 +1114,7 @@ namespace semantic_mesh_segmentation
 		std::ostringstream batch_out;
 		batch_out
 			<< path
-			<< "config.txt";
+			<< "config_3d_annotate.txt";
 
 		std::string str_temp = batch_out.str().data();
 		std::ifstream fin;

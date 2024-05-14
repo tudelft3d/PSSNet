@@ -1988,6 +1988,24 @@ namespace semantic_mesh_segmentation
 
 		oversegmentation_evaluation(smesh_gt, smesh_pred, all_seg_evaluation);
 
+		int fi = 0;
+		for (auto& fd : smesh_pred->faces())
+		{
+			if (smesh_pred->get_face_truth_label[fd] != face_truth_label[fi])
+				smesh_pred->get_face_color[fd] = easy3d::vec3(1.0f, 0.0f, 0.0f);
+			else
+				smesh_pred->get_face_color[fd] = easy3d::vec3(0.0f, 1.0f, 0.0f);
+			++fi;
+		}
+
+		// write error mesh 
+		auto split_pred_path = Split(pred_path, ".");
+		std::string error_path = split_pred_path[0] + "_error_map.ply";
+		char* error_path_temp = (char*)error_path.data();
+		smesh_pred->remove_common_non_used_properties();
+		smesh_pred->remove_non_used_properties_for_error_mesh();
+		rply_output(smesh_pred, error_path_temp);
+
 		delete all_seg_evaluation;
 		delete smesh_gt;
 		delete smesh_pred;
