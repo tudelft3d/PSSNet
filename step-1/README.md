@@ -28,7 +28,7 @@ url = {https://www.sciencedirect.com/science/article/pii/S0924271622003355},
 </pre></div></div>
 
 ## Usage
-The program is currently only supported to run and compile on **Windows 10** system.
+The program is currently only supported to run and compile on **Windows (10 or 11)** system.
 To use this program on other operating systems, the source code will need to be modified and updated.
 If you would like to contribute to this project, please contact the author.
 
