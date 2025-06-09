@@ -1,0 +1,386 @@
+//****************** Operation mode ******************//
+//--- all modes: Pipeline, Mesh_feature_extraction, Train_config, Test_config, Train_and_Test_config, Data_evaluation_for_all_tiles_config, Save_mesh_features_for_visualization, Class_statistics, Generate_semantic_sampled_points, Moha_Verdi_SOTA_pipeline, Evaluation_SOTA ---//
+//--- PSSNet modes: PSSNet_pipeline_for_GCN, Get_labels_for_planar_non_planar_from_semantic, PSSNet_oversegmentation, PSSNet_oversegmentation_evaluation, PSSNet_graph_construction, PSSNet_pcl_generation_for_GCN, Extract_semantic_component, Extract_texture_cluster_pcl, Convert_texture_cluster_pcl_to_mesh ---//
+
+operating_mode = PSSNet_pipeline_for_GCN
+
+//****************** Common parameters ******************//
+//--- path of data ---//
+root_path = E:/sum_v2/data/
+
+//--- path of 'seg_aug.py' ---//
+seg_aug_py_path = C:/data/PhDthesis/git_sum_public/SUMS_Win10_1.3.1/
+
+
+//--- 0: RF(SUM Paper), 1: SOTA (Competition methods), 2: PNP (PSSNet) ---//
+processing_mode = 2
+
+//--- Select data to process, make sure your data is in the corresponding folder ---//
+process_train = false
+process_test = true
+process_predict = false
+process_validate = true
+
+//--- Use binary or ascii output ---//
+use_binary = false
+
+//--- Label definition name ---//
+label_definition = label
+
+//--- Face class name, in *.ply file, make sure that unlabelled is (-1), unclassified is (0), other classes start from (1) ---//
+labels_name = terrain,high_vegetation,facade_surface,water,car,boat,roof_surface,chimney,dormer,balcony,roof_installation,wall
+
+//--- Texture class name ---//
+texture_labels_name = window,door,low_vegetation,impervious_surface,road,road_marking,cycle_lane,sidewalk
+tex_fd_label = 2,2,0,0,0,0,0,0
+
+//--- Class color ---//
+labels_color = 170,85,0 ; 0,255,0 ; 255,255,0 ; 0,255,255 ; 255,0,255 ; 0,0,153 ; 85,85,127 ; 255,50,50 ; 85,0,127 ; 50,125,150 ; 50,0,50 ; 215,160,140
+texture_labels_color = 100,100,255 ; 150,30,60 ; 200,255,0 ; 100,150,150 ; 200,200,200 ; 150,100,150 ; 255,85,127 ; 255,255,170
+
+//--- labels are ignored in classification, default has no ignored labels ---
+ignored_labels_name = default
+
+//****************** PSSNet configurations ********************//
+//--- define the name for non-planar and planar types ---
+labels_name_pnp = non_planar, planar
+
+//--- non-planar (0) and planar (1, 2, ...) label map from semantic labels ---
+L1_to_L0_label_map = 1,0,1,1,0,0,1,0,0,0,1,1
+
+//--- non-planar (0) and planar (1, 2, ...) class color ---
+labels_color_pnp = 255,102,179 ; 127,127,127
+
+//--- generate ground truth connected components ---
+generate_groundtruth_segments = true
+
+//--- evaluation over-segmentation results based on connected components ---
+only_evaluation = false
+
+//--- use GCN features for visualization and write the output ---
+use_GCN_features = true
+
+//--- only write GCN features if features have already been computed ---
+only_write_GCN_features = false
+
+//--- initial vertex planarity ---
+radius_default = 3.0
+
+//--- balance parameter for distance from vertex to plane ---
+mrf_lambda_d = 1.2
+
+//--- balance parameter for smoothness term ---
+mrf_lambda_m = 0.05
+
+//--- balance parameter for planar and non-planar prior ---
+mrf_lambda_g = 1.0
+
+//--- balance parameter for post processing for removing some small regions ---
+mrf_lambda_p = 0.3
+
+//--- write graph node ---
+with_node_graphs = false
+
+//--- compute edges between segment border points ---
+use_edges_between_boder_points = true
+
+//--- compute parallelism edges ---
+parallelism_relations = true
+
+//--- parallelism tolerance angle ---
+tolerance_angle = 5.0
+
+//--- compute connecting ground edges ---
+local_ground_relations = true
+
+//--- compute ExMAT edges ---
+exterior_mat_relations = true
+
+//--- compute spatially-proximate edges on sampled points (paper used) or segments ---
+delaunay_relations_on_sampled_points = true
+
+//--- spatially-proximate edges delaunay closed point setting ---
+remove_close_vertices_for_delaunay_dis = 0.02
+
+//****************** Mesh_feature_extraction ******************//
+//--- The mesh should have texture, otherwise the classification will not perform very well ---//
+with_texture = true
+with_texture_mask = false
+
+//--- Select intermediate data to save ---//
+save_sampled_pointclouds = true
+save_oversegmentation_mesh = true
+save_tex_cloud = false
+
+//--- For compute relative elevation (meters) ---//
+multi_scale_ele_radius = 10.0,20.0,40.0
+long_range_radius_default = default
+local_ground_segs = default
+
+//--- For generate HSV histogram ---//
+hsv_bins = 15,5,5 
+
+//--- Interior medial axis transform parameters ---//
+mat_delta_convergance = default
+mat_initialized_radius = default
+mat_denoising_seperation_angle = default
+mat_iteration_limit_number = default
+
+//--- For custom or existing segments, make sure you have the field face_segment_id ---//
+use_existing_mesh_segments_on_training = false
+use_existing_mesh_segments_on_testing = false
+use_existing_mesh_segments_on_predicting = false
+use_existing_mesh_segments_on_validation = false
+
+//--- settings for texture color processing --- //
+//If it is set to true then it consumes a lot of memory, if not then we use face average color which save memories but it has less accurate color feature
+//recommendation: adaptive triangles: true, dense triangles: false;
+use_face_pixels_color_aggregation_on_training = true
+use_face_pixels_color_aggregation_on_testing = true
+use_face_pixels_color_aggregation_on_predicting = true
+use_face_pixels_color_aggregation_on_validation = true
+
+//--- Region growing for mesh over-segmentation ---//
+mesh_distance_to_plane = 0.5
+mesh_accepted_angle = 25.0
+mesh_minimum_region_size = 0.0
+partition_folder_path = PSSNet/segments_pnp/
+partition_prefixs = _mesh_seg
+
+//--- Feature selection, check the end of this file for feature dictionary; the multiscale elevation (use_mulsc_eles) corresponding to (multi_scale_ele_radius) ---//
+use_feas = 0,1,2,3
+use_mulsc_eles = 0,1,2
+use_basic_features = 0,1,2,3,4
+use_eigen_features = 3,4,6,11
+use_color_features = 3,4,5,6,10,11,12,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38
+
+//--- Used sampled point clouds instead of triangle faces (only for merged mesh that has topological interstice); In order to compute relative elevation faster, a sparse point cloud will be sampled by default, these settings are for all datasets (train, test, predict, validate) ---//
+is_pointclouds_exist = false
+sampling_point_density = 5.0
+ele_sampling_point_density = default
+sp_size = 5
+
+//---- Use which strategy to sample point clouds on mesh ---//
+//0: randomg sampling; 1: poisson-disk sampling
+sampling_method = 0
+
+//0: sampled only; 1: face center only; 2: face center plus face vertices; 3: sampled and face center; 4: sampled and face center plus face vertices; 5: sample texture cluster
+//0: for relative elevation (automatic); 1,2: for mesh feature computation; 3,4: for merged mesh feature computation; 3: for deep learning sampled point clouds.  
+sampling_strategy_training = 1
+sampling_strategy_testing = 1
+sampling_strategy_predicting = 1
+sampling_strategy_validation = 1
+
+//****************** Train_and_Test parameters ******************//
+//--- Random forest parameters ---//
+rf_tree_numbers = 200
+rf_tree_depth = 50
+
+//--- smote data augmentation, it will call python file, make sure you have installed 'imbalanced-learn' and replaced 'filter.py' in 'Lib\site-packages\imblearn\over_sampling\_smote' with ours ---//
+augmented_data_exist = false
+enable_augment = false
+used_k_neighbors = 15
+
+//--- save intermediate data when run the 'Test' ---//
+save_feature_importance = true
+save_error_map = true
+
+//****************** Class_statistics ******************//
+//--- 0: mesh, 1: sampled point cloud ---//
+input_type_for_statistics = 0
+
+//****************** SOTA: Moha_Verdi_SOTA_pipeline ******************//
+//--- Mesh neighborhood radius, for initial planarity to generate region growing seeds ---//
+short_range_radius_default = default
+
+//--- Mesh neighborhood radius, for face color ---//
+mr_facet_neg_sphericial_radius = default
+
+//--- Mesh region growing parameters ---//
+mr_limit_distance = default
+mr_angle_thres = default
+mr_L1_color_dis = default
+mr_max_sp_area = default
+
+//--- MRF formulation, regularization parameter is (mrf_lambda_mh) ---//
+mrf_lambda_mh = 0.0
+mrf_energy_amplify = default
+
+//****************** SOTA : all deep learning methods ******************//
+//
+
+//--- add point color for sampled point cloud, tune 'sampling_point_density' for sampling density ---//
+add_point_color_for_dp_input = true
+
+//--- path for save the data ---//
+//--- "PSSNet/" ---//
+sota_folder_path = PSSNet/
+
+//--- "_pcl_gcn_pred_up" ---//
+sota_prefixs = _pcl_gcn_pred_up
+
+//--- label prefix of output *.ply from competitive deep learning method ---//
+//--- PSSNet:"pred" ---//
+label_string = pred
+
+//--- 0: no minus, if label start from 0; 1: minus 1, if label start from 1 ---//
+//---PSSNet: 1 ---//
+label_minus = 1
+
+//--- Equal to the original sampled point cloud or not ---//
+//--- others: true, Randlanet: false ---//
+equal_cloud = true
+
+//****************** Batch processing parameters ******************//
+//--- If the 'batch_names_**.txt' exists then true ---//
+use_existing_splited_batch = false
+
+//--- Merge small tiles into one mesh (batch_size=row, sub_batch_size=column)---//
+batch_size = 1
+sub_batch_size = 1
+
+//--- Check which data use batch processing and point cloud sampling ---//
+use_batch_processing_on_training = false
+use_batch_processing_on_testing = false
+use_batch_processing_on_predicting = false
+use_batch_processing_on_validation = false
+
+//--- Use point cloud region growing or use mesh region growing ---
+use_pointcloud_region_growing_on_training = false
+use_pointcloud_region_growing_on_testing = false
+use_pointcloud_region_growing_on_predicting = false
+use_pointcloud_region_growing_on_validation = false
+
+//--- Merge segments, usually for merged mesh region growing ---//
+use_merged_segments_on_training = false
+use_merged_segments_on_testing = false
+use_merged_segments_on_predicting = false
+use_merged_segments_on_validation = false
+adjacent_radius = 0.5
+adjacent_pt2plane_distance = 0.1
+adjacent_seg_angle = 15
+
+//--- Point cloud region growing parameters ---//
+//adpative mesh: 0.5, 90; dense mesh: 0.3, 45
+pcl_distance_to_plane = 0.5 
+pcl_accepted_angle = 45
+pcl_minimum_region_size = 0
+pcl_k_nn = 12
+
+//---save texture in the output folder of each batch from original input ---// 
+save_textures_in_predict = false
+
+//---Extract_semantic_component ---// 
+save_texture_pcl = false
+save_merged_mesh = false
+duplicates_precision = 0.001
+component_labels_name = terrain,car,high_vegetation
+merged_component_name = road
+allow_component_separation = false
+add_unclassified = true
+
+//component_labels_name = terrain,roof_surface,chimney,dormer,balcony,building_part;high_vegetation
+//merged_component_name = building,tree
+//non_component_separation = false;false
+//****************** Feature dictionary specification (not parameters) ******************//
+use_feas
+	{
+		{segment_basic_features, 0}, 
+		{segment_eigen_features, 1},
+		{segment_color_features, 2},
+		{elevation_features, 3}
+	};
+
+use_mulsc_eles 
+	{
+		{"10.0", 0},
+		{"20.0", 1},
+		{"40.0", 2}
+	};
+
+
+basic_feature_base_names
+	{
+		{"avg_center_z", 0},
+		{"interior_mat_radius", 1},
+		{"sum_area", 2},
+		{"relative_elevation", 3}, 
+		{"triangle_density", 4},
+		{"vertex_count", 5},
+		{"circumference", 6},
+		{"compactness", 7},
+		{"shape_index", 8},
+		{"shape_descriptor", 9}
+	};
+
+eigen_feature_base_names
+	{
+		{"eigen_1", 0},
+		{"eigen_2", 1},
+		{"eigen_3", 2},
+		{"verticality", 3},
+		{"linearity", 4},
+		{"planarity", 5},
+		{"sphericity", 6},
+		{"anisotropy", 7},
+		{"eigenentropy", 8},
+		{"omnivariance", 9},
+		{"sumeigenvals", 10},
+		{"curvature", 11},
+		{"verticality_eig1", 12},
+		{"verticality_eig3", 13},
+		{"surface", 14},
+		{"volume", 15},
+		{"absolute_eigvec_1_moment_1st", 16},
+		{"absolute_eigvec_2_moment_1st", 17},
+		{"absolute_eigvec_3_moment_1st", 18},
+		{"absolute_eigvec_1_moment_2nd", 19},
+		{"absolute_eigvec_2_moment_2nd", 20},
+		{"absolute_eigvec_3_moment_2nd", 21},
+		{"vertical_moment_1st", 22},
+		{"vertical_moment_2nd", 23},
+		{"uniformity", 24}
+	};
+
+color_feature_base_names
+	{
+		{"red", 0},
+		{"green", 1},
+		{"blue", 2},
+		{"hue", 3},
+		{"sat", 4},
+		{"val", 5},
+		{"greenness", 6},
+		{"red_var", 7},
+		{"green_var", 8},
+		{"blue_var", 9},
+		{"hue_var", 10},
+		{"sat_var", 11},
+		{"val_var", 12},
+		{"greenness_var", 13},
+		{"hue_bin_0", 14},
+		{"hue_bin_1", 15},
+		{"hue_bin_2", 16},
+		{"hue_bin_3", 17},
+		{"hue_bin_4", 18},
+		{"hue_bin_5", 19},
+		{"hue_bin_6", 20},
+		{"hue_bin_7", 21},
+		{"hue_bin_8", 22},
+		{"hue_bin_9", 23},
+		{"hue_bin_10", 24},
+		{"hue_bin_11", 25},
+		{"hue_bin_12", 26},
+		{"hue_bin_13", 27},
+		{"hue_bin_14", 28},
+		{"sat_bin_0", 29},
+		{"sat_bin_1", 30},
+		{"sat_bin_2", 31},
+		{"sat_bin_3", 32},
+		{"sat_bin_4", 33},
+		{"val_bin_0", 34},
+		{"val_bin_1", 35},
+		{"val_bin_2", 36},
+		{"val_bin_3", 37},
+		{"val_bin_4", 38}
+	};
